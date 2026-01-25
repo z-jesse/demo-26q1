@@ -45,7 +45,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 23px;
+  gap: 30px;
   padding: 0px 20px;
   position: relative;
   flex: 1;
@@ -226,7 +226,7 @@
   height: 40px;
   align-items: center;
   gap: 4px;
-  padding: 0px 12px;
+  padding: 0px 10px;
   position: relative;
   align-self: stretch;
   width: 100%;
@@ -242,7 +242,7 @@
   font-family: var(--body-reg-font-family);
   font-weight: var(--body-reg-font-weight);
   color: var(--colors-text-moderate-weak);
-  font-size: var(--body-reg-font-size);
+  font-size: var(--body-large-reg-font-size);
   letter-spacing: var(--body-reg-letter-spacing);
   line-height: var(--body-reg-line-height);
   font-style: var(--body-reg-font-style);
@@ -708,7 +708,6 @@
 
 .base .field {
   margin: 0;
-  padding: 0;
 }
 
 .base .search:focus {

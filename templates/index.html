@@ -247,41 +247,60 @@
         const form = document.getElementById("assistant-form");
         const textarea = document.getElementById("prompt-input");
         const out = document.getElementById("assistant-response");
-
+      
         if (!form || !textarea || !out) return;
-
-        async function submitPrompt() {
+      
+        let evtSource = null;
+      
+        function submitPrompt() {
           const prompt = (textarea.value || "").trim();
           if (!prompt) return;
-
+      
+          // Clean previous stream if any
+          if (evtSource) {
+            evtSource.close();
+            evtSource = null;
+          }
+      
           textarea.disabled = true;
-          out.textContent = "Thinking...";
-
-          try {
-            const res = await fetch("/api/prompt", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ prompt }),
-            });
-
-            if (!res.ok) throw new Error("Request failed");
-
-            const data = await res.json();
-            out.textContent = data.response || "";
-            textarea.value = "";
-          } catch (e) {
-            out.textContent = "Sorry — something went wrong sending that prompt.";
-          } finally {
+          out.innerHTML = "";  // clear previous content
+      
+          evtSource = new EventSource(`/api/stream?prompt=${encodeURIComponent(prompt)}`, { withCredentials: false });
+      
+          evtSource.onmessage = function (event) {
+            const msg = event.data;
+      
+            // Append the chunk (already contains <br> from server)
+            out.innerHTML += msg;
+      
+            // Scroll to bottom
+            out.scrollTop = out.scrollHeight;
+          };
+      
+          evtSource.onerror = function () {
+            // out.innerHTML += '<br><span style="color: #dc2626;">Connection error — please try again.</span>';
+            evtSource.close();
+            evtSource = null;
             textarea.disabled = false;
             textarea.focus();
-          }
+          };
+      
+          evtSource.addEventListener("close", () => {
+            evtSource.close();
+            evtSource = null;
+            textarea.disabled = false;
+            textarea.focus();
+          });
+      
+          // Optional: clear input right away
+          textarea.value = "";
         }
-
+      
         form.addEventListener("submit", (e) => {
           e.preventDefault();
           submitPrompt();
         });
-
+      
         textarea.addEventListener("keydown", (e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -289,6 +308,6 @@
           }
         });
       })();
-    </script>
+      </script>
   </body>
 </html>
