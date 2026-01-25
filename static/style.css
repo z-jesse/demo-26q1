@@ -1,7 +1,7 @@
 .base {
   display: flex;
-  width: 1440px;
-  height: 1024px;
+  width: 100%;
+  min-height: 100vh;
   align-items: center;
   position: relative;
   background-color: var(--colors-bg-strong);
@@ -10,7 +10,7 @@
 .base .frame {
   display: flex;
   flex-direction: column;
-  width: 230px;
+  width: 240px;
   align-items: flex-start;
   gap: 24px;
   position: relative;
@@ -19,7 +19,7 @@
 
 .base .div-wrapper {
   display: flex;
-  height: 80px;
+  height: 88px;
   align-items: center;
   gap: 10px;
   padding: 0px 16px;
@@ -46,7 +46,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 23px;
-  padding: 0px 16px;
+  padding: 0px 20px;
   position: relative;
   flex: 1;
   align-self: stretch;
@@ -88,7 +88,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
   position: relative;
   align-self: stretch;
   width: 100%;
@@ -126,7 +126,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: 8px;
+  padding: 12px;
   position: relative;
   align-self: stretch;
   width: 100%;
@@ -137,7 +137,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  padding: 12px;
   position: relative;
   align-self: stretch;
   width: 100%;
@@ -151,11 +151,7 @@
   width: 40px;
   height: 40px;
   border-radius: 4px;
-  background: linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 1) 100%
-  );
+  object-fit: cover;
 }
 
 .base .frame-7 {
@@ -204,7 +200,7 @@
 
 .base .frame-9 {
   display: flex;
-  height: 80px;
+  height: 88px;
   align-items: center;
   justify-content: space-between;
   padding: 0px 20px;
@@ -311,6 +307,7 @@
   height: 30px;
   position: relative;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .base .img-3 {
@@ -339,7 +336,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 16px;
-  padding: 24px;
+  padding: 20px;
   position: relative;
   flex: 1;
   align-self: stretch;
@@ -455,6 +452,7 @@
   aspect-ratio: 1;
   position: relative;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .base .text-wrapper-11 {
@@ -603,17 +601,56 @@
   white-space: nowrap;
   font-style: var(--body-reg-font-style);
 }
-/* Inject original CSS code here */
+
+.base input.p {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  width: 100%;
+  min-width: 200px;
+}
+
+.base input.p::placeholder {
+  color: #ffffff;
+  opacity: 0.7;
+}
+
+.base textarea.p {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: var(--body-reg-font-size);
+  letter-spacing: var(--body-reg-letter-spacing);
+  line-height: var(--body-reg-line-height);
+  font-style: var(--body-reg-font-style);
+}
+
+.base textarea.p::placeholder {
+  color: #ffffff;
+  opacity: 0.7;
+}
+
+.base .frame-25:focus-within {
+  border: 1px solid var(--blueblue-500);
+  outline: none;
+}
 
 .base .frame-2 {
-  background: transparent;
+  background-color: rgba(178, 170, 130, 0.25);
   border: none;
   cursor: pointer;
   text-align: left;
-}
-
-.base .frame-2:hover {
-  background-color: rgba(178, 170, 130, 0.25);
 }
 
 .base .frame-2:focus-visible {
@@ -734,7 +771,7 @@
 }
 
 .base .frame {
-  min-width: 230px;
+  min-width: 240px;
 }
 
 .base .frame-8 {
@@ -749,4 +786,67 @@
 .base .frame-23 {
   min-width: 280px;
   max-width: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .base .frame {
+    width: 200px;
+  }
+  
+  .base .frame-8 {
+    flex: 1;
+  }
+  
+  .base .search-field {
+    max-width: 300px;
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .base {
+    flex-direction: column;
+  }
+  
+  .base .frame {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 10px;
+  }
+  
+  .base .div {
+    flex-direction: row;
+    width: auto;
+  }
+  
+  .base .frame-3 {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .base .frame-8 {
+    width: 100%;
+  }
+  
+  .base .frame-9 {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .base .frame-10 {
+    justify-content: center;
+  }
+  
+  .base .text-wrapper-2,
+  .base .text-wrapper-3 {
+    display: none;
+  }
+  
+  .base .frame-2,
+  .base .frame-4 {
+    padding: 8px;
+  }
 }
