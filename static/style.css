@@ -570,6 +570,9 @@
   align-self: stretch;
   width: 100%;
   flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
 }
 
 .base .frame-25 {
@@ -586,6 +589,25 @@
   overflow: hidden;
   border: 1px solid;
   border-color: var(--colors-border-strong);
+}
+
+.base #assistant-form {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-self: stretch;
+}
+
+.base #prompt-input {
+  flex: 1;
+}
+
+.base pre#assistant-response {
+  width: 100%;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .base .p {

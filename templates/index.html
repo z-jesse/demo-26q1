@@ -218,13 +218,77 @@
             </section>
           </div>
           <aside class="frame-23" aria-label="AI Assistant">
-            <div class="frame-24"></div>
+            <div class="frame-24" aria-live="polite">
+              {% if response %}
+                <pre class="p" id="assistant-response">{{ response }}</pre>
+              {% else %}
+                <pre class="p" id="assistant-response"></pre>
+              {% endif %}
+            </div>
             <div class="frame-25">
-              <textarea class="p" placeholder="How can Vygor Intelligence help?"></textarea>
+              <form id="assistant-form" method="post" action="/">
+                <textarea
+                  id="prompt-input"
+                  name="prompt"
+                  class="p"
+                  placeholder="How can Vygor Intelligence help?"
+                  autocomplete="off"
+                  rows="3"
+                >{{ user_prompt or "" }}</textarea>
+              </form>
             </div>
           </aside>
         </div>
       </main>
     </div>
+
+    <script>
+      (function () {
+        const form = document.getElementById("assistant-form");
+        const textarea = document.getElementById("prompt-input");
+        const out = document.getElementById("assistant-response");
+
+        if (!form || !textarea || !out) return;
+
+        async function submitPrompt() {
+          const prompt = (textarea.value || "").trim();
+          if (!prompt) return;
+
+          textarea.disabled = true;
+          out.textContent = "Thinking...";
+
+          try {
+            const res = await fetch("/api/prompt", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ prompt }),
+            });
+
+            if (!res.ok) throw new Error("Request failed");
+
+            const data = await res.json();
+            out.textContent = data.response || "";
+            textarea.value = "";
+          } catch (e) {
+            out.textContent = "Sorry — something went wrong sending that prompt.";
+          } finally {
+            textarea.disabled = false;
+            textarea.focus();
+          }
+        }
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          submitPrompt();
+        });
+
+        textarea.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitPrompt();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
