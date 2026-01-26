@@ -1,10 +1,12 @@
 .base {
   display: flex;
   width: 100%;
+  height: 100vh;
   min-height: 100vh;
   align-items: center;
   position: relative;
   background-color: var(--colors-bg-strong);
+  overflow: hidden;
 }
 
 .base .frame {
@@ -196,6 +198,7 @@
   flex: 1;
   align-self: stretch;
   flex-grow: 1;
+  min-height: 0;
 }
 
 .base .frame-9 {
@@ -329,6 +332,7 @@
   background-color: var(--colors-bg-moderate);
   border-radius: 20px 0px 0px 0px;
   overflow: hidden;
+  min-height: 0;
 }
 
 .base .frame-14 {
@@ -562,6 +566,7 @@
   border-left-width: 1px;
   border-left-style: solid;
   border-color: var(--colors-border-strong);
+  min-height: 0;
 }
 
 .base .frame-24 {
@@ -573,6 +578,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-width: 0;
+  min-height: 0;
 }
 
 .base .frame-25 {
@@ -791,6 +797,38 @@
   overflow-x: hidden;
 }
 
+.base .frame-14 {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Transparent scrollbar track/background (Frame 14 + assistant output) */
+.base .frame-14,
+.base .frame-24 {
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent; /* thumb, track (Firefox) */
+  scrollbar-width: thin;
+}
+
+.base .frame-14::-webkit-scrollbar,
+.base .frame-24::-webkit-scrollbar {
+  width: 10px;
+  background: transparent;
+}
+
+.base .frame-14::-webkit-scrollbar-track,
+.base .frame-24::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.base .frame-14::-webkit-scrollbar-thumb,
+.base .frame-24::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent; /* keeps track transparent */
+  background-clip: content-box;
+}
+
 .base .frame {
   min-width: 240px;
 }
@@ -870,4 +908,390 @@
   .base .frame-4 {
     padding: 8px;
   }
+}
+
+/* ------------------------------------------------------------ */
+/* Campaign Email (templates/center/pos.html)                     */
+/* ------------------------------------------------------------ */
+.base .campaign-email {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  min-height: 100%;
+  color: var(--colors-text-strong);
+}
+
+.base .campaign-email__label {
+  margin: 0;
+  font-family: var(--body-small-bold-font-family);
+  font-weight: var(--body-small-bold-font-weight);
+  font-size: var(--body-small-bold-font-size);
+  line-height: var(--body-small-bold-line-height);
+  color: var(--colors-text-strong);
+  opacity: 0.9;
+}
+
+.base .campaign-email__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.base .campaign-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--colors-border-strong);
+  border-radius: 999px;
+  min-height: 36px;
+}
+
+.base .campaign-chip__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--body-small-bold-font-family);
+  font-weight: var(--body-small-bold-font-weight);
+  font-size: 12px;
+  color: var(--colors-text-strong);
+}
+
+.base .campaign-chip__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.base .campaign-chip__avatar--initial {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.base .campaign-chip__avatar--red {
+  background: rgba(254, 89, 21, 0.25);
+  border-color: rgba(254, 89, 21, 0.35);
+}
+
+.base .campaign-chip__text {
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: var(--body-reg-font-size);
+  line-height: var(--body-reg-line-height);
+  color: var(--colors-text-strong);
+  white-space: nowrap;
+}
+
+.base .campaign-checkbox {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: var(--body-reg-font-size);
+  color: var(--colors-text-strong);
+}
+
+.base .campaign-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--colors-primary-default);
+}
+
+.base .campaign-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--colors-border-strong);
+  opacity: 0.9;
+  margin: 0;
+}
+
+.base .campaign-email__subject {
+  margin: 0 0 8px 0;
+  font-family: var(--titles-h5-font-family);
+  font-weight: var(--titles-h5-font-weight);
+  font-size: var(--titles-h5-font-size);
+  letter-spacing: var(--titles-h5-letter-spacing);
+  line-height: var(--titles-h5-line-height);
+  color: var(--colors-text-strong);
+}
+
+.base .campaign-email__toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.base .campaign-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--colors-border-strong);
+}
+
+.base .campaign-toolbar__btn {
+  background: transparent;
+  border: none;
+  color: var(--colors-text-strong);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.base .campaign-toolbar__btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.base .campaign-toolbar__btn:focus-visible {
+  outline: 2px solid var(--colors-primary-default);
+  outline-offset: 2px;
+}
+
+.base .campaign-toolbar__btn--dropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.base .campaign-toolbar__caret {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.base .campaign-toolbar__sep {
+  width: 1px;
+  height: 18px;
+  background: var(--colors-border-strong);
+  opacity: 0.9;
+}
+
+.base .campaign-u {
+  text-decoration: underline;
+}
+
+.base .campaign-s {
+  text-decoration: line-through;
+}
+
+.base .campaign-btn {
+  border: 1px solid var(--colors-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--colors-text-strong);
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-bold-font-weight);
+  font-size: var(--body-reg-font-size);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.base .campaign-btn:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.base .campaign-btn:focus-visible {
+  outline: 2px solid var(--colors-primary-default);
+  outline-offset: 2px;
+}
+
+.base .campaign-btn--ghost {
+  padding: 10px 18px;
+}
+
+.base .campaign-btn--pill {
+  padding: 10px 18px;
+}
+
+.base .campaign-btn--primary {
+  background: var(--blueblue-500);
+  border-color: rgba(0, 142, 231, 0.6);
+  color: #ffffff;
+}
+
+.base .campaign-btn--primary:hover {
+  background: var(--blueblue-600);
+}
+
+.base .campaign-btn--danger {
+  background: rgba(254, 89, 21, 0.85);
+  border-color: rgba(254, 89, 21, 0.9);
+  color: #ffffff;
+}
+
+.base .campaign-btn--danger:hover {
+  background: rgba(254, 89, 21, 1);
+}
+
+.base .campaign-btn__icon {
+  opacity: 0.9;
+}
+
+.base .campaign-editor {
+  margin-top: 12px;
+  padding: 6px 2px;
+  min-height: 160px;
+  color: var(--colors-text-strong);
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: var(--body-reg-font-size);
+  line-height: 1.6;
+}
+
+.base .campaign-editor p {
+  margin: 0 0 14px 0;
+}
+
+.base .campaign-editor:focus {
+  outline: none;
+}
+
+.base .campaign-editor-wrapper {
+  position: relative;
+}
+
+.base .text-selection-menu {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--colors-border-strong);
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.base[data-colors-mode="dark"] .text-selection-menu {
+  background: rgba(41, 40, 39, 0.98);
+  border-color: var(--colors-border-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.base .text-selection-menu__btn {
+  background: transparent;
+  border: none;
+  color: var(--colors-text-strong);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.base .text-selection-menu__btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.base[data-colors-mode="dark"] .text-selection-menu__btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.base .text-selection-menu__btn:focus-visible {
+  outline: 2px solid var(--colors-primary-default);
+  outline-offset: 2px;
+}
+
+.base .text-selection-menu__sep {
+  width: 1px;
+  height: 20px;
+  background: var(--colors-border-strong);
+  opacity: 0.6;
+}
+
+.base .ai-personalized-text {
+  background-color: rgba(37, 138, 62, 0.8);
+  color: var(--colors-text-strong);
+  display: inline;
+  padding: 2px 0;
+}
+
+.base .campaign-email__section-title {
+  margin: 0;
+  font-family: var(--titles-h5-font-family);
+  font-weight: var(--titles-h5-font-weight);
+  font-size: var(--titles-h5-font-size);
+  line-height: var(--titles-h5-line-height);
+  color: var(--colors-text-strong);
+}
+
+.base .campaign-email__field-label {
+  margin-top: 8px;
+  font-family: var(--body-small-bold-font-family);
+  font-weight: var(--body-small-bold-font-weight);
+  font-size: var(--body-small-bold-font-size);
+  color: var(--colors-text-strong);
+}
+
+.base .campaign-input {
+  margin-top: 6px;
+  width: min(420px, 100%);
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--colors-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--colors-text-strong);
+  padding: 0 16px;
+  outline: none;
+}
+
+.base .campaign-input::placeholder {
+  color: var(--colors-text-moderate);
+}
+
+.base .campaign-input:focus {
+  border-color: var(--blueblue-500);
+}
+
+.base .campaign-preview {
+  margin-top: 14px;
+  padding: 0;
+  color: var(--colors-text-strong);
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: var(--body-reg-font-size);
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.base .campaign-preview p {
+  margin: 0 0 14px 0;
+}
+
+.base .campaign-email__actions {
+  margin-top: auto;
+  padding: 16px 0 0 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(36, 36, 36, 0), var(--colors-bg-moderate) 40%);
+  backdrop-filter: blur(2px);
 }

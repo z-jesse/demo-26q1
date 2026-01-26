@@ -24,7 +24,7 @@
           </button>
           <ul class="frame-3" data-colors-mode="dark">
             <li>
-              <a href="#dashboard" class="frame-4" data-colors-mode="dark">
+              <a href="/" class="frame-4" data-colors-mode="dark">
                 <img class="img" src="/static/img/home-roof-house.svg" alt="" aria-hidden="true" />
                 <span class="text-wrapper-3">Dashboard</span>
               </a>
@@ -168,6 +168,14 @@
         function submitPrompt() {
           const prompt = (textarea.value || "").trim();
           if (!prompt) return;
+      
+          // If input is "yes", switch to email view
+          if (prompt.toLowerCase() === "yes") {
+            const url = new URL(window.location.href);
+            url.searchParams.set('center', 'email');
+            window.location.href = url.toString();
+            return;
+          }
       
           // Clean previous stream if any
           if (evtSource) {

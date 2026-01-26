@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 CENTER_TEMPLATES = {
     "dashboard": "center/dashboard.html",
-    "pos": "center/pos.html",
+    "email": "center/email.html",
 }
 
 def ai_response(prompt):
