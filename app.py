@@ -2,6 +2,11 @@ from flask import Flask, render_template, request, jsonify, stream_with_context,
 
 app = Flask(__name__)
 
+CENTER_TEMPLATES = {
+    "dashboard": "center/dashboard.html",
+    "pos": "center/pos.html",
+}
+
 def ai_response(prompt):
     if not prompt or not prompt.strip():
         yield "Please type a message..."
@@ -107,6 +112,10 @@ def home():
     response = None
     user_prompt = None
 
+    center = (request.args.get('center') or 'dashboard').strip().lower()
+    center_key = center if center in CENTER_TEMPLATES else "dashboard"
+    center_template = CENTER_TEMPLATES[center_key]
+
     if request.method == 'POST':
         user_prompt = request.form.get('prompt', '').strip()
         if user_prompt:
@@ -114,7 +123,9 @@ def home():
 
     return render_template('index.html', 
                           response=response,
-                          user_prompt=user_prompt)
+                          user_prompt=user_prompt,
+                          center_template=center_template,
+                          center_key=center_key)
 
 
 if __name__ == "__main__":
