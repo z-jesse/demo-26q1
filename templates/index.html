@@ -167,11 +167,17 @@
       
         function submitPrompt() {
           // Remove all whitespace including Mac line endings (\r), newlines (\n), tabs, and spaces
-          const prompt = (textarea.value || "").trim().toLowerCase();
+          const rawValue = textarea.value || "";
+          console.log('Raw input value:', JSON.stringify(rawValue)); // Debug: show raw value with escape sequences
+          const prompt = rawValue.replace(/[\r\n\t]/g, '').trim().toLowerCase();
+          console.log('Cleaned prompt:', JSON.stringify(prompt)); // Debug: show cleaned prompt
+          console.log('Prompt length:', prompt.length); // Debug: show length
           if (!prompt) return;
       
           // If input is "yes", switch to email view
+          console.log('Checking if prompt === "yes":', prompt === "yes"); // Debug: show comparison result
           if (prompt === "yes") {
+            console.log('YES detected! Redirecting to email view...'); // Debug: confirm trigger
             const url = new URL(window.location.href);
             url.searchParams.set('center', 'email');
             window.location.href = url.toString();
