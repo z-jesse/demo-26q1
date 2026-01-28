@@ -920,6 +920,7 @@
   width: 100%;
   min-height: 100%;
   color: var(--colors-text-strong);
+  font-family: "Figtree", Helvetica, sans-serif;
 }
 
 .base .campaign-email__label {
@@ -1249,9 +1250,14 @@
   color: var(--colors-text-strong);
 }
 
-.base .campaign-input {
+.base .campaign-input-wrapper {
+  position: relative;
   margin-top: 6px;
   width: min(420px, 100%);
+}
+
+.base .campaign-input {
+  width: 100%;
   height: 40px;
   border-radius: 999px;
   border: 1px solid var(--colors-border-strong);
@@ -1267,6 +1273,92 @@
 
 .base .campaign-input:focus {
   border-color: var(--blueblue-500);
+}
+
+.base .campaign-input-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--colors-bg-dugout);
+  border: 1px solid var(--colors-border-strong);
+  border-radius: var(--MVP-v1-1-container-radius-l);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.base .campaign-input-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--colors-border-strong);
+  color: var(--colors-text-strong);
+  font-family: var(--body-reg-font-family);
+  font-weight: var(--body-reg-font-weight);
+  font-size: var(--body-reg-font-size);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.base .campaign-input-dropdown__item:last-child {
+  border-bottom: none;
+}
+
+.base .campaign-input-dropdown__item:hover,
+.base .campaign-input-dropdown__item:focus {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.base .campaign-input-dropdown__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.base .campaign-input-dropdown__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.base .campaign-input-dropdown__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.base .campaign-input-dropdown__name {
+  font-weight: var(--body-bold-font-weight);
+  color: var(--colors-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.base .campaign-input-dropdown__email {
+  font-size: var(--body-small-reg-font-size);
+  color: var(--colors-text-moderate);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .base .campaign-preview {

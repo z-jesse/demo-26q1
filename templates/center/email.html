@@ -4,34 +4,14 @@
   </header>
 
   <section class="campaign-email__recipients" aria-labelledby="send-to-heading">
-    <p id="send-to-heading" class="campaign-email__label">Send to (20)</p>
+    <p id="send-to-heading" class="campaign-email__label">Send to (1)</p>
 
     <div class="campaign-email__chips" aria-label="Selected recipients and segments">
       <span class="campaign-chip">
         <span class="campaign-chip__avatar" aria-hidden="true">
           <img src="/static/img/woman-avatar.jpg" alt="" />
         </span>
-        <span class="campaign-chip__text">Customer One (customer1@email.com)</span>
-      </span>
-      <span class="campaign-chip">
-        <span class="campaign-chip__avatar campaign-chip__avatar--initial" aria-hidden="true">G</span>
-        <span class="campaign-chip__text">Gold Membership (123)</span>
-      </span>
-      <span class="campaign-chip">
-        <span class="campaign-chip__avatar campaign-chip__avatar--initial campaign-chip__avatar--red" aria-hidden="true">F</span>
-        <span class="campaign-chip__text">Frequent Customer Tag (8)</span>
-      </span>
-      <span class="campaign-chip">
-        <span class="campaign-chip__avatar" aria-hidden="true">
-          <img src="/static/img/woman-avatar.jpg" alt="" />
-        </span>
-        <span class="campaign-chip__text">Customer Two (customer2@email.com)</span>
-      </span>
-      <span class="campaign-chip">
-        <span class="campaign-chip__avatar" aria-hidden="true">
-          <img src="/static/img/woman-avatar.jpg" alt="" />
-        </span>
-        <span class="campaign-chip__text">Customer Three (customer3@email.com)</span>
+        <span class="campaign-chip__text">Test Customer (test@email.com)</span>
       </span>
     </div>
 
@@ -97,13 +77,26 @@
   <section class="campaign-email__test" aria-labelledby="test-heading">
     <h3 id="test-heading" class="campaign-email__section-title">Test</h3>
 
-    <input
-      id="test-customer"
-      class="campaign-input"
-      type="search"
-      placeholder="Search for Name, Phone, or Email"
-      autocomplete="off"
-    />
+    <div class="campaign-input-wrapper">
+      <input
+        id="test-customer"
+        class="campaign-input"
+        type="search"
+        placeholder="Search for Name, Phone, or Email"
+        autocomplete="off"
+      />
+      <div id="test-customer-dropdown" class="campaign-input-dropdown" role="listbox" aria-label="Customer suggestions" style="display: none;">
+        <button type="button" class="campaign-input-dropdown__item" role="option" data-value="Test Customer (test@email.com)">
+          <span class="campaign-input-dropdown__avatar" aria-hidden="true">
+            <img src="/static/img/woman-avatar.jpg" alt="" />
+          </span>
+          <div class="campaign-input-dropdown__info">
+            <span class="campaign-input-dropdown__name">Test Customer</span>
+            <span class="campaign-input-dropdown__email">test@email.com</span>
+          </div>
+        </button>
+      </div>
+    </div>
 
     <div class="campaign-preview" aria-label="Email preview">
       <p><strong>Hello!</strong></p>
@@ -257,6 +250,93 @@
       if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
         hideMenu();
       }
+    });
+  })();
+
+  // Test customer input dropdown
+  (function() {
+    const input = document.getElementById('test-customer');
+    const dropdown = document.getElementById('test-customer-dropdown');
+    const wrapper = document.querySelector('.campaign-input-wrapper');
+    const preview = document.querySelector('.campaign-preview');
+    
+    if (!input || !dropdown || !wrapper || !preview) return;
+    
+    function showDropdown() {
+      dropdown.style.display = 'block';
+    }
+    
+    function hideDropdown() {
+      // Delay to allow click events on dropdown items
+      setTimeout(() => {
+        dropdown.style.display = 'none';
+      }, 200);
+    }
+    
+    function updatePreview(customerName) {
+      // Update the preview with personalized text after a delay
+      setTimeout(() => {
+        const name = customerName.split(' (')[0]; // Extract name from "Name (email)"
+        preview.innerHTML = `
+          <p><strong>Hello, ${name}!</strong></p>
+          <p>
+            Join us for Summer Yoga Fest 2025, a weekend dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
+            sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
+            or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
+          </p>
+          <p>
+            We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
+            and intention. We can't wait to flow, breathe, and celebrate with you at Summer Yoga Fest 2025.
+          </p>
+          <p>Warmly,<br />Yoga Studio</p>
+        `;
+      }, 600);
+    }
+    
+    function selectItem(value, customerName) {
+      input.value = value;
+      hideDropdown();
+      input.focus();
+      updatePreview(customerName);
+    }
+    
+    // Show dropdown on focus
+    input.addEventListener('focus', showDropdown);
+    
+    // Hide dropdown on blur (unless clicking inside dropdown)
+    input.addEventListener('blur', hideDropdown);
+    
+    // Handle dropdown item clicks
+    dropdown.addEventListener('click', function(e) {
+      const item = e.target.closest('.campaign-input-dropdown__item');
+      if (item) {
+        const value = item.getAttribute('data-value');
+        const nameElement = item.querySelector('.campaign-input-dropdown__name');
+        const customerName = nameElement ? nameElement.textContent : value;
+        if (value) {
+          selectItem(value, customerName);
+        }
+      }
+    });
+    
+    // Prevent blur when clicking inside dropdown
+    dropdown.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+    });
+    
+    // Filter dropdown items based on input
+    input.addEventListener('input', function() {
+      const searchTerm = input.value.toLowerCase();
+      const items = dropdown.querySelectorAll('.campaign-input-dropdown__item');
+      
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
     });
   })();
 </script>
