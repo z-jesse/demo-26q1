@@ -1296,6 +1296,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
+  width: 100%;
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--colors-border-strong);
