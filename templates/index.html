@@ -166,11 +166,12 @@
         let evtSource = null;
       
         function submitPrompt() {
-          const prompt = (textarea.value || "").trim();
+          // Remove all whitespace including Mac line endings (\r), newlines (\n), tabs, and spaces
+          const prompt = (textarea.value || "").replace(/[\r\n\t]/g, '').trim();
           if (!prompt) return;
       
           // If input is "yes", switch to email view
-          if (prompt.toLowerCase() === "yes") {
+          xif (prompt.toLowerCase() === "yes") {
             const url = new URL(window.location.href);
             url.searchParams.set('center', 'email');
             window.location.href = url.toString();
