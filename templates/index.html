@@ -171,7 +171,7 @@
           if (!prompt) return;
       
           // If input is "yes", switch to email view
-          xif (prompt.toLowerCase() === "yes") {
+          if (prompt.toLowerCase() === "yes") {
             const url = new URL(window.location.href);
             url.searchParams.set('center', 'email');
             window.location.href = url.toString();
