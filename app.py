@@ -5,7 +5,24 @@ app = Flask(__name__)
 CENTER_TEMPLATES = {
     "dashboard": "center/dashboard.html",
     "email": "center/email.html",
+    "new_class": "center/new_class.html",
+    "classes": "center/class.html",
 }
+
+
+def get_redirect_center(prompt):
+    """Return the center key to redirect to for this prompt, or None."""
+    if not prompt or not prompt.strip():
+        return None
+    user_input = prompt.strip().lower()
+    if user_input == "yes":
+        return "email"
+    if user_input == "class":
+        return "new_class"
+    if all(w in user_input for w in ("create", "new", "event")) and "vip" in user_input:
+        return "new_class"
+    return None
+
 
 def ai_response(prompt):
     if not prompt or not prompt.strip():
@@ -52,6 +69,16 @@ def ai_response(prompt):
             "(Sent to 50 recipients)"
         ]
 
+    elif all(word in user_input for word in ['create', 'new', 'event']) and 'vip' in user_input:
+        lines = [
+            "✅ Creating a new event for VIPs.",
+            "",
+            "I've set up a draft event and added it to your calendar.",
+            "You can edit the details (date, time, capacity) in your Events or Classes view.",
+            "",
+            "Want me to draft an invite email to your VIP list?"
+        ]
+
     else:
         lines = [
             "Sorry, I didn't understand that command.",
@@ -60,6 +87,7 @@ def ai_response(prompt):
             "• what classes were most profitable",
             "• schedule John James for Flow Class this wednesday",
             "• draft and email to my most loyal customers inviting them to a new event",
+            "• create a new event for vips",
             "",
             "Try typing one of those!"
         ]
@@ -86,6 +114,12 @@ def stream_prompt():
         def empty_gen():
             yield "data: Please type a message...\n\n"
         return Response(stream_with_context(empty_gen()), mimetype="text/event-stream")
+
+    redirect_center = get_redirect_center(prompt)
+    if redirect_center and redirect_center in CENTER_TEMPLATES:
+        def redirect_gen():
+            yield f"data: __REDIRECT__{redirect_center}\n\n"
+        return Response(stream_with_context(redirect_gen()), mimetype="text/event-stream")
 
     def event_stream():
         yield "data: <span class=\"thinking\">Thinking...</span><br>\n\n"

@@ -48,7 +48,7 @@
               </a>
             </li>
             <li>
-              <a href="#classes" class="frame-4" data-colors-mode="dark">
+              <a href="/?center=classes" class="frame-4" data-colors-mode="dark">
                 <img class="img" src="/static/img/people-2-user-avatar-group.svg" alt="" aria-hidden="true" />
                 <span class="text-wrapper-3">Classes</span>
               </a>
@@ -166,24 +166,16 @@
         let evtSource = null;
       
         function submitPrompt() {
-          // Remove all whitespace including Mac line endings (\r), newlines (\n), tabs, and spaces
-          const rawValue = textarea.value || "";
-          console.log('Raw input value:', JSON.stringify(rawValue)); // Debug: show raw value with escape sequences
-          const prompt = rawValue.replace(/[\r\n\t]/g, '').trim().toLowerCase();
-          console.log('Cleaned prompt:', JSON.stringify(prompt)); // Debug: show cleaned prompt
-          console.log('Prompt length:', prompt.length); // Debug: show length
-          if (!prompt) return;
-      
-          // If input is "yes", switch to email view
-          console.log('Checking if prompt === "yes":', prompt === "yes"); // Debug: show comparison result
-          if (prompt === "yes") {
-            console.log('YES detected! Redirecting to email view...'); // Debug: confirm trigger
-            const url = new URL(window.location.href);
-            url.searchParams.set('center', 'email');
-            window.location.href = url.toString();
+          let prompt;
+          try {
+            const rawValue = textarea.value || "";
+            prompt = rawValue.replace(/[\r\n\t]/g, '').trim().toLowerCase();
+            if (!prompt) return;
+          } catch (error) {
+            console.error('Error in submitPrompt:', error);
             return;
           }
-      
+
           // Clean previous stream if any
           if (evtSource) {
             evtSource.close();
@@ -197,11 +189,16 @@
       
           evtSource.onmessage = function (event) {
             const msg = event.data;
-      
-            // Append the chunk (already contains <br> from server)
+            if (msg.startsWith('__REDIRECT__')) {
+              const center = msg.slice('__REDIRECT__'.length);
+              evtSource.close();
+              evtSource = null;
+              const url = new URL(window.location.href);
+              url.searchParams.set('center', center);
+              window.location.href = url.toString();
+              return;
+            }
             out.innerHTML += msg;
-      
-            // Scroll to bottom
             out.scrollTop = out.scrollHeight;
           };
       
