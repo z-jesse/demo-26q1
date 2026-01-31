@@ -160,11 +160,24 @@
         const form = document.getElementById("assistant-form");
         const textarea = document.getElementById("prompt-input");
         const out = document.getElementById("assistant-response");
-      
+        const STORAGE_KEY = "vygor-assistant-response";
+
         if (!form || !textarea || !out) return;
-      
+
+        // Restore chat from sessionStorage so it survives page changes
+        try {
+          const saved = sessionStorage.getItem(STORAGE_KEY);
+          if (saved) out.innerHTML = saved;
+        } catch (e) {}
+
         let evtSource = null;
-      
+
+        function persistChat() {
+          try {
+            sessionStorage.setItem(STORAGE_KEY, out.innerHTML);
+          } catch (e) {}
+        }
+
         function submitPrompt() {
           let prompt;
           try {
@@ -190,16 +203,25 @@
           evtSource.onmessage = function (event) {
             const msg = event.data;
             if (msg.startsWith('__REDIRECT__')) {
-              const center = msg.slice('__REDIRECT__'.length);
+              persistChat();
               evtSource.close();
               evtSource = null;
+              const payload = msg.slice('__REDIRECT__'.length);
               const url = new URL(window.location.href);
-              url.searchParams.set('center', center);
+              if (payload.includes('=')) {
+                payload.split('&').forEach(function (pair) {
+                  const eq = pair.indexOf('=');
+                  if (eq > 0) url.searchParams.set(pair.slice(0, eq), pair.slice(eq + 1));
+                });
+              } else {
+                url.searchParams.set('center', payload);
+              }
               window.location.href = url.toString();
               return;
             }
             out.innerHTML += msg;
             out.scrollTop = out.scrollHeight;
+            persistChat();
           };
       
           evtSource.onerror = function () {

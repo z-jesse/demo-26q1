@@ -1,6 +1,11 @@
+from datetime import date, timedelta
+
 from flask import Flask, render_template, request, jsonify, stream_with_context, Response
 
 app = Flask(__name__)
+
+# Server-side counter for the new VIP event row signups (classes list)
+new_class_signups_count = 0
 
 CENTER_TEMPLATES = {
     "dashboard": "center/dashboard.html",
@@ -15,11 +20,9 @@ def get_redirect_center(prompt):
     if not prompt or not prompt.strip():
         return None
     user_input = prompt.strip().lower()
-    if user_input == "yes":
-        return "email"
     if user_input == "class":
         return "new_class"
-    if all(w in user_input for w in ("create", "new", "event")) and "vip" in user_input:
+    if all(w in user_input for w in ("create", "new")):
         return "new_class"
     return None
 
@@ -34,71 +37,55 @@ def ai_response(prompt):
     if 'classes' in user_input and 'profitable' in user_input:
         lines = [
             "The most profitable classes last quarter were:",
-            "• Yoga Flow — $5,200",
-            "• HIIT Blast — $4,800",
-            "• Pilates Reformer — $3,900",
-            "Total revenue from top 3: $13,900"
+            "• High Test — $99,999",
+            "• Yoga Test — $4,800",
+            "• Low Test — $100",
+            "Total revenue from top 3: $104,899"
         ]
 
-    elif all(word in user_input for word in ['schedule', 'flow class', 'wednesday']):
-        name = "John James" if 'john' in user_input or 'james' in user_input else "the requested member"
-        lines = [
-            f"✅ Scheduled {name} for Flow Class this Wednesday at 6:00 PM.",
-            "A confirmation has been sent to their email."
-        ]
-
-    elif all(word in user_input for word in ['draft', 'email', 'loyal', 'customers', 'event']):
-        lines = [
-            "📧 Draft created and sent to your most loyal customers (top 50 by visits):",
-            "",
-            "Subject: You're Invited – Exclusive Preview of Our New Event 🎉",
-            "",
-            "Dear valued member,",
-            "",
-            "Because you've been with us through so many flows, lifts and stretches,",
-            "we're giving you first access to our new 'Reset & Recharge Weekend' event",
-            "happening February 14–15, 2026.",
-            "",
-            "Limited spots — reply 'YES' or click below to reserve.",
-            "",
-            "See you on the mat!",
-            "Jesse & the Team",
-            "",
-            "[ Reserve My Spot ]",
-            "",
-            "(Sent to 50 recipients)"
-        ]
-
-    elif all(word in user_input for word in ['create', 'new', 'event']) and 'vip' in user_input:
+    elif all(word in user_input for word in ['create', 'new']):
         lines = [
             "✅ Creating a new event for VIPs.",
             "",
-            "I've set up a draft event and added it to your calendar.",
-            "You can edit the details (date, time, capacity) in your Events or Classes view.",
+            "I've set up a draft event.",
+            "You can edit the details (date, time, capacity) and save it to your calendar.",
             "",
-            "Want me to draft an invite email to your VIP list?"
+        ]
+
+    elif all(word in user_input for word in ['signup']):
+        global new_class_signups_count
+        new_class_signups_count += 1
+        lines = [
+            "Retrieving customer analytics...",
+            "Your top customer based on attendance is **Test Customer** 🎖️",
+            "",
+            f"✅ Just scheduled **Test Customer** for the **VIP Yoga Event - 2026** tomorrow at 10:00 AM.",
+            "Confirmation email has been sent to them."
+        ]
+
+    elif all(word in user_input for word in ['email']):
+        lines = [
+            "I've drafted a personalized marketing email for your **VIP Yoga Event - 2026** tomorrow at 10:00 AM 🎉",
+            "It's targeted at your top 50 most loyal customers based on attendance — the ones who come back the most often.",
+            "",
+            "The email highlights their loyalty, offers exclusive first access, and includes a clear 'YES' reply / button to reserve their limited spot.",
+            "",
+            "(Ready to send to 50 recipients)",
+            "",
+            "You'll be redirected to review the full draft. Let me know if you want any changes to the wording, subject line, tone, or anything else before it goes out! 😊"
         ]
 
     else:
         lines = [
-            "Sorry, I didn't understand that command.",
-            "",
-            "This demo recognizes these example prompts:",
-            "• what classes were most profitable",
-            "• schedule John James for Flow Class this wednesday",
-            "• draft and email to my most loyal customers inviting them to a new event",
-            "• create a new event for vips",
-            "",
-            "Try typing one of those!"
+            "Sorry, something went wrong. Please try again."
         ]
 
-    # Small random thinking delay (0.4–1.8 sec) before any output
     import random, time
-    time.sleep(random.uniform(0.4, 1.8))
+    time.sleep(random.uniform(2, 4))
 
     for line in lines:
         yield line + "\n"
-        time.sleep(random.uniform(0.06, 0.18))   # typing speed ~60–160 ms per line
+        time.sleep(random.uniform(0.1, 0.5))   # typing speed ~60–160 ms per line
 
 
 @app.route('/api/stream', methods=['GET', 'POST'])
@@ -116,10 +103,16 @@ def stream_prompt():
         return Response(stream_with_context(empty_gen()), mimetype="text/event-stream")
 
     redirect_center = get_redirect_center(prompt)
-    if redirect_center and redirect_center in CENTER_TEMPLATES:
-        def redirect_gen():
-            yield f"data: __REDIRECT__{redirect_center}\n\n"
-        return Response(stream_with_context(redirect_gen()), mimetype="text/event-stream")
+    if redirect_center and redirect_center not in CENTER_TEMPLATES:
+        redirect_center = None
+
+    user_input = prompt.strip().lower()
+    if "signup" in user_input:
+        redirect_after_stream = "center=classes&new=1"
+    elif "email" in user_input:
+        redirect_after_stream = "email"
+    else:
+        redirect_after_stream = None
 
     def event_stream():
         yield "data: <span class=\"thinking\">Thinking...</span><br>\n\n"
@@ -133,6 +126,11 @@ def stream_prompt():
                 .replace("\n", "<br>")
             )
             yield f"data: {safe}\n\n"
+
+        if redirect_center:
+            yield f"data: __REDIRECT__{redirect_center}\n\n"
+        elif redirect_after_stream:
+            yield f"data: __REDIRECT__{redirect_after_stream}\n\n"
 
     return Response(
         stream_with_context(event_stream()),
@@ -150,16 +148,27 @@ def home():
     center_key = center if center in CENTER_TEMPLATES else "dashboard"
     center_template = CENTER_TEMPLATES[center_key]
 
+    show_new_class_row = request.args.get('new') in ('1', 'true')
+
+    today = date.today()
+    today_date_str = today.strftime('%b ') + str(today.day) + ', ' + today.strftime('%Y')
+    tomorrow = date.today() + timedelta(days=1)
+    tomorrow_date_str = tomorrow.strftime('%b ') + str(tomorrow.day) + ', ' + tomorrow.strftime('%Y')
+
     if request.method == 'POST':
         user_prompt = request.form.get('prompt', '').strip()
         if user_prompt:
             response = ai_response(user_prompt)
 
-    return render_template('index.html', 
+    return render_template('index.html',
                           response=response,
                           user_prompt=user_prompt,
                           center_template=center_template,
-                          center_key=center_key)
+                          center_key=center_key,
+                          show_new_class_row=show_new_class_row,
+                          today_date_str=today_date_str,
+                          tomorrow_date_str=tomorrow_date_str,
+                          new_class_signups_count=new_class_signups_count)
 
 
 if __name__ == "__main__":

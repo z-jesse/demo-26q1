@@ -6,7 +6,7 @@
         <div class="div-2">
         <div class="input-field">
             <div class="div-3"><div class="field-label">Class Name</div></div>
-            <div class="field"><div class="text-wrapper-3">Spring Break VIP Event - 2026</div></div>
+            <div class="field"><div class="text-wrapper-3">VIP Yoga Event - 2026</div></div>
         </div>
         <div class="input-field-2">
             <div class="div-3"><div class="field-label">Description</div></div>
@@ -65,7 +65,7 @@
             <div class="div-4">
             <div class="div-3"><div class="field-label">Date</div></div>
             <div class="field">
-                <div class="text-wrapper-3">Mar 1, 2026</div>
+                <div class="text-wrapper-3">{{ tomorrow_date_str }}</div>
                 <div class="icon"><img class="img" src="/static/img/calendar-3-date.svg" alt="" /></div>
             </div>
             </div>
@@ -113,7 +113,7 @@
         <div class="input-field-3">
             <div class="div-3"><div class="field-label">Price</div></div>
             <div class="field-4">
-            <div class="text-wrapper-3">30</div>
+            <div class="text-wrapper-3">0</div>
             <span class="icon-dollar" aria-hidden="true">$</span>
             </div>
         </div>
@@ -121,7 +121,7 @@
     </div>
     <div class="btn">
         <button class="button-2"><div class="add-new-2">Cancel</div></button>
-        <button class="button-3"><div class="add-new-3">Add New Class</div></button>
+        <a href="/?center=classes&new=1" class="button-3"><div class="add-new-3">Add New Class</div></a>
     </div>
     </div>
 </div>

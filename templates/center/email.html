@@ -56,15 +56,15 @@
     <div class="campaign-editor" role="textbox" aria-label="Email body" contenteditable="true" spellcheck="false">
       <p><strong>Hello!</strong></p>
       <p>
-        Join us for Summer Yoga Fest 2025, a weekend dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
+        Join us for VIP Yoga Event - 2026, an event dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
         sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
         or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
       </p>
       <p>
         We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
-        and intention. We can't wait to flow, breathe, and celebrate with you at Summer Yoga Fest 2025.
+        and intention. We can't wait to flow, breathe, and celebrate with you at VIP Yoga Event - 2026.
       </p>
-      <p>Warmly,<br />Yoga Studio</p>
+      <p>Warmly,<br />Vygor Test</p>
     </div>
     <div id="text-selection-menu" class="text-selection-menu" role="toolbar" aria-label="AI Personalize" style="display: none;">
       <button type="button" class="text-selection-menu__btn" id="ai-personalize-btn" aria-label="AI Personalize">AI Personalize</button>
@@ -101,15 +101,15 @@
     <div class="campaign-preview" aria-label="Email preview">
       <p><strong>Hello!</strong></p>
       <p>
-        Join us for Summer Yoga Fest 2025, a weekend dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
+        Join us for VIP Yoga Event - 2026, an event dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
         sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
         or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
       </p>
       <p>
         We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
-        and intention. We can't wait to flow, breathe, and celebrate with you at Summer Yoga Fest 2025.
+        and intention. We can't wait to flow, breathe, and celebrate with you at VIP Yoga Event - 2026.
       </p>
-      <p>Warmly,<br />Yoga Studio</p>
+      <p>Warmly,<br />Vygor Test</p>
     </div>
   </section>
 
@@ -274,23 +274,27 @@
     }
     
     function updatePreview(customerName) {
-      // Update the preview with personalized text after a delay
+      // Update the preview with personalized text after a 2s delay
       setTimeout(() => {
         const name = customerName.split(' (')[0]; // Extract name from "Name (email)"
         preview.innerHTML = `
-          <p><strong>Hello, ${name}!</strong></p>
+          <p><strong>Hi ${name}!</strong></p>
+
+          <p>Thanks for coming to class again last week — we always appreciate seeing you on the mat.</p>
+
+          <p>Because you're one of our most dedicated members and clearly value your yoga practice, we wanted to reach out with something special just for you.</p>
           <p>
-            Join us for Summer Yoga Fest 2025, a weekend dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
+            Join us for VIP Yoga Event - 2026, a weekend dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
             sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
             or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
           </p>
           <p>
             We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
-            and intention. We can't wait to flow, breathe, and celebrate with you at Summer Yoga Fest 2025.
+            and intention. We can't wait to flow, breathe, and celebrate with you at VIP Yoga Event - 2026.
           </p>
-          <p>Warmly,<br />Yoga Studio</p>
+          <p>Warmly,<br />Vygor Test</p>
         `;
-      }, 600);
+      }, 2000);
     }
     
     function selectItem(value, customerName) {
