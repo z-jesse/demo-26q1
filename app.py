@@ -37,10 +37,10 @@ def ai_response(prompt):
     if 'classes' in user_input and 'profitable' in user_input:
         lines = [
             "The most profitable classes last quarter were:",
-            "• High Test — $99,999",
-            "• Yoga Test — $4,800",
-            "• Low Test — $100",
-            "Total revenue from top 3: $104,899"
+            "• Yoga Flow — $6,540",
+            "• Evening Meditation — $4,800",
+            "• Power Pose — $1,380",
+            "Total revenue from top 3: $12,720"
         ]
 
     elif all(word in user_input for word in ['create', 'new']):
