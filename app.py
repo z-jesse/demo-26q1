@@ -40,7 +40,7 @@ def ai_response(prompt):
             "• Yoga Flow — $6,540",
             "• Evening Meditation — $4,800",
             "• Power Pose — $1,380",
-            "Total revenue from top 3: $12,720"
+            "Net profit from top 3: $12,720"
         ]
 
     elif all(word in user_input for word in ['create', 'new']):
@@ -57,20 +57,18 @@ def ai_response(prompt):
         new_class_signups_count += 1
         lines = [
             "Retrieving customer analytics...",
-            "Your top customer based on attendance is **Test Customer** 🎖️",
+            "Your top customer based on attendance is **Mia Watts** 🎖️",
             "",
-            f"✅ Just scheduled **Test Customer** for the **VIP Yoga Event - 2026** tomorrow at 10:00 AM.",
+            f"✅ Just scheduled **Mia Watts** for the **VIP Yoga Event - 2026** tomorrow at 10:00 AM.",
             "Confirmation email has been sent to them."
         ]
 
     elif all(word in user_input for word in ['email']):
         lines = [
             "I've drafted a personalized marketing email for your **VIP Yoga Event - 2026** tomorrow at 10:00 AM 🎉",
-            "It's targeted at your top 50 most loyal customers based on attendance — the ones who come back the most often.",
+            "It's targeted at your most loyal customers based on attendance — the ones who come back the most often.",
             "",
             "The email highlights their loyalty, offers exclusive first access, and includes a clear 'YES' reply / button to reserve their limited spot.",
-            "",
-            "(Ready to send to 50 recipients)",
             "",
             "You'll be redirected to review the full draft. Let me know if you want any changes to the wording, subject line, tone, or anything else before it goes out! 😊"
         ]
