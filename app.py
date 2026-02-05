@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from flask import Flask, render_template, request, jsonify, stream_with_context, Response
+import random, time
 
 app = Flask(__name__)
 
@@ -35,6 +36,7 @@ def ai_response(prompt):
     user_input = prompt.strip().lower()
 
     if 'classes' in user_input and 'profitable' in user_input:
+        time.sleep(random.uniform(2, 4))
         lines = [
             "The most profitable classes last quarter were:",
             "• Yoga Flow — $6,540",
@@ -44,6 +46,7 @@ def ai_response(prompt):
         ]
 
     elif all(word in user_input for word in ['create', 'new']):
+        time.sleep(random.uniform(4, 6))
         lines = [
             "✅ Creating a new event for VIPs.",
             "",
@@ -53,6 +56,7 @@ def ai_response(prompt):
         ]
 
     elif all(word in user_input for word in ['signup']):
+        time.sleep(random.uniform(2, 4))
         global new_class_signups_count
         new_class_signups_count += 1
         lines = [
@@ -64,6 +68,7 @@ def ai_response(prompt):
         ]
 
     elif all(word in user_input for word in ['email']):
+        time.sleep(random.uniform(6, 8))
         lines = [
             "I've drafted a personalized marketing email for your **VIP Yoga Event - 2026** tomorrow at 10:00 AM 🎉",
             "It's targeted at your most loyal customers based on attendance — the ones who come back the most often.",
@@ -78,12 +83,9 @@ def ai_response(prompt):
             "Sorry, something went wrong. Please try again."
         ]
 
-    import random, time
-    time.sleep(random.uniform(2, 4))
-
     for line in lines:
         yield line + "\n"
-        time.sleep(random.uniform(0.1, 0.5))   # typing speed ~60–160 ms per line
+        time.sleep(random.uniform(0.1, 0.5))
 
 
 @app.route('/api/stream', methods=['GET', 'POST'])
