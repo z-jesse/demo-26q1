@@ -46,6 +46,8 @@ def ai_response(prompt):
         ]
 
     elif all(word in user_input for word in ['create', 'new']):
+        global new_class_signups_count
+        new_class_signups_count = 0
         time.sleep(random.uniform(4, 6))
         lines = [
             "✅ Creating a new event for VIPs.",
