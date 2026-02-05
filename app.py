@@ -34,6 +34,7 @@ def ai_response(prompt):
         return
 
     user_input = prompt.strip().lower()
+    global new_class_signups_count
 
     if 'classes' in user_input and 'profitable' in user_input:
         time.sleep(random.uniform(2, 4))
@@ -46,7 +47,6 @@ def ai_response(prompt):
         ]
 
     elif all(word in user_input for word in ['create', 'new']):
-        global new_class_signups_count
         new_class_signups_count = 0
         time.sleep(random.uniform(4, 6))
         lines = [
@@ -59,7 +59,6 @@ def ai_response(prompt):
 
     elif all(word in user_input for word in ['signup']):
         time.sleep(random.uniform(2, 4))
-        global new_class_signups_count
         new_class_signups_count += 1
         lines = [
             "Retrieving customer analytics...",
