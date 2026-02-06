@@ -1,9 +1,21 @@
+import os
 from datetime import date, timedelta
 
-from flask import Flask, render_template, request, jsonify, stream_with_context, Response
-import random, time
+from flask import Flask, render_template, request, jsonify, stream_with_context, Response, redirect, url_for, session
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+SITE_PASSWORD = os.environ.get("SITE_PASSWORD", "vygor")
+
+
+@app.before_request
+def require_login():
+    if request.endpoint == "static" or request.endpoint == "login":
+        return None
+    if session.get("authenticated"):
+        return None
+    return redirect(url_for("login"))
+
 
 # Server-side counter for the new VIP event row signups (classes list)
 new_class_signups_count = 0
@@ -138,6 +150,17 @@ def stream_prompt():
         mimetype="text/event-stream",
         headers={"Cache-Control": "no-cache"}
     )
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html', error=None)
+    password = (request.form.get('password') or '').strip()
+    if password == SITE_PASSWORD:
+        session['authenticated'] = True
+        return redirect(url_for('home'))
+    return render_template('login.html', error='Incorrect password.')
 
 
 @app.route('/', methods=['GET', 'POST'])
