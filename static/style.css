@@ -458,6 +458,59 @@
   flex: 0 0 auto;
 }
 
+.base .metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--body-reg-font-family);
+}
+
+.base .metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.base .metric-label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.base .metric-label {
+  margin: 0;
+  font-family: var(--body-small-reg-font-family);
+  font-weight: var(--body-small-reg-font-weight);
+  font-size: 0.75rem;
+  color: var(--colors-text-moderate);
+}
+
+.base .metric-value {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.base .metric-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid;
+}
+
+.base .metric-badge--positive {
+  color: var(--colors-solid-green);
+  border-color: var(--colors-solid-green);
+}
+
+.base .metric-badge--negative {
+  color: var(--colors-solid-red);
+  border-color: var(--colors-solid-red);
+}
+
 .base .ellipse-2 {
   width: 24px;
   height: 24px;
@@ -804,6 +857,46 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* Dashboard cards: wide = main column + metrics sidebar; narrow = stacked */
+.base .dashboard-cards-row {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.base .dashboard-cards-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.base .dashboard-cards-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .base .dashboard-cards-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .base .dashboard-cards-main {
+    flex: 2;
+    min-width: 0;
+  }
+
+  .base .dashboard-cards-sidebar {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 /* Transparent scrollbar track/background (Frame 14 + assistant output) */

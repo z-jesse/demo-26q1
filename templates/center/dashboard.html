@@ -1,5 +1,73 @@
 <h2 class="text-wrapper-7">Hello, Test.</h2>
-<section class="frame-15" data-colors-mode="dark" aria-labelledby="metrics-heading">
+<div class="dashboard-cards-row">
+  <div class="dashboard-cards-main">
+    <section class="frame-15" data-colors-mode="dark" aria-labelledby="dashboard-card-heading">
+      <h3 id="dashboard-card-heading" class="text-wrapper-8">Total sales</h3>
+      <h2 class="text-wrapper-7">$30,032</h2>
+      <div id="today-line-chart" class="today-chart-container" style="height: 200px; width: 100%;"></div>
+      <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@3.3.1/plotly.min.js"></script>
+      <script>
+        (function () {
+          var el = document.getElementById("today-line-chart");
+          if (!el) return;
+          var now = new Date();
+          var monthAgo = new Date(now);
+          monthAgo.setDate(monthAgo.getDate() - 30);
+          var n = 20;
+          var x = [];
+          for (var i = 0; i < n; i++) {
+            var d = new Date(monthAgo.getTime() + (now - monthAgo) * i / (n - 1 || 1));
+            x.push(d);
+          }
+          var y = [770, 800, 670, 820, 840, 880, 940, 820, 1030, 940, 1100, 1150, 1030, 1180, 1190, 1080, 1210, 1220, 1130, 1250];
+          var layout = {
+            margin: { t: 0, r: 0, b: 0, l: 0 },
+            autosize: true,
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)",
+            xaxis: { type: "date", tickfont: { color: "rgba(122, 122, 122, 1)", size: 12, family: "Figtree" }, showgrid: false, zerolinecolor: "rgba(61, 61, 61, 1)", automargin: true, tickformat: "%b %d" },
+            yaxis: { tickfont: { color: "rgba(122, 122, 122, 1)", size: 12, family: "Figtree" }, gridcolor: "rgba(61, 61, 61, 1)", zerolinecolor: "rgba(61, 61, 61, 1)", tickprefix: "$", tickformat: ",.0f", automargin: true, dtick: 250 },
+            showlegend: false
+          };
+          function draw() {
+            if (typeof Plotly === "undefined") return;
+            Plotly.newPlot(el, [{
+              x: x,
+              y: y,
+              type: "scatter",
+              mode: "lines",
+              fill: "tozeroy",
+              fillcolor: "rgba(4, 152, 224, 0.4)",
+              fillgradient: {
+                type: "vertical",
+                colorscale: [[0, "rgba(4, 152, 224, 0)"], [1, "rgba(4, 152, 224, 0.3)"]]
+              },
+              line: { color: "#0498e0", width: 2 }
+            }], layout, { responsive: true, displayModeBar: false });
+            setTimeout(function () { Plotly.Plots.resize(el); }, 0);
+          }
+          function resize() { try { Plotly.Plots.resize(el); } catch (e) {} }
+          function runDraw() {
+            if (typeof Plotly === "undefined") {
+              window.addEventListener("load", runDraw);
+              return;
+            }
+            requestAnimationFrame(function () { requestAnimationFrame(draw); });
+          }
+          if (document.readyState === "loading") {
+            window.addEventListener("load", runDraw);
+          } else {
+            runDraw();
+          }
+          window.addEventListener("resize", resize);
+          if (typeof ResizeObserver !== "undefined") {
+            var ro = new ResizeObserver(function () { resize(); });
+            ro.observe(el);
+          }
+        })();
+      </script>
+    </section>
+    <section class="frame-15" data-colors-mode="dark" aria-labelledby="metrics-heading">
   <h3 id="metrics-heading" class="text-wrapper-8">Upcoming classes</h3>
   <time class="text-wrapper-9" datetime="04:00">9:00 pm</time>
   <article class="frame-16">
@@ -52,37 +120,81 @@
       </div>
     </div>
   </article>
-</section>
-<section class="frame-19" data-colors-mode="dark" aria-labelledby="recent-activity-heading">
-  <div class="frame-20">
-    <h3 id="recent-activity-heading" class="text-wrapper-12">Recent Activity</h3>
+    </section>
   </div>
-  <article class="frame-21">
-    <div class="frame-22">
-      <h4 class="text-wrapper-13">Yoga Flow</h4>
-      <span class="text-wrapper-13">-</span>
-    </div>
-    <time class="text-wrapper-5" datetime="2026-01-11T15:51">Jan 11, 2026, 3:51 pm</time>
-  </article>
-  <article class="frame-21">
-    <div class="frame-22">
-      <h4 class="text-wrapper-13">Yoga Flow</h4>
-      <span class="text-wrapper-13">-</span>
-    </div>
-    <time class="text-wrapper-5" datetime="2026-01-12T10:22">Jan 12, 2026, 10:22 am</time>
-  </article>
-  <article class="frame-21">
-    <div class="frame-22">
-      <h4 class="text-wrapper-13">Evening Meditation</h4>
-      <span class="text-wrapper-13">-</span>
-    </div>
-    <time class="text-wrapper-5" datetime="2026-01-13T19:15">Jan 13, 2026, 7:15 pm</time>
-  </article>
-  <article class="frame-21">
-    <div class="frame-22">
-      <h4 class="text-wrapper-13">Yoga Flow</h4>
-      <span class="text-wrapper-13">-</span>
-    </div>
-    <time class="text-wrapper-5" datetime="2026-01-14T14:40">Jan 14, 2026, 2:40 pm</time>
-  </article>
-</section>
+  <div class="dashboard-cards-sidebar">
+    <section class="frame-15" data-colors-mode="dark" aria-labelledby="metrics-card-heading">
+      <h3 id="metrics-card-heading" class="text-wrapper-8">Metrics</h3>
+      <div class="metrics-list">
+        <div class="metric-item">
+          <div class="metric-label-row">
+            <p class="metric-label">Total sales</p>
+            <span class="metric-badge metric-badge--positive">↑ 33%</span>
+          </div>
+          <p class="text-wrapper-10 metric-value">$30,032</p>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label-row">
+            <p class="metric-label">Total bookings</p>
+            <span class="metric-badge metric-badge--positive">↑ 12%</span>
+          </div>
+          <p class="text-wrapper-10 metric-value">142</p>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label-row">
+            <p class="metric-label">New customers</p>
+            <span class="metric-badge metric-badge--negative">↓ 8%</span>
+          </div>
+          <p class="text-wrapper-10 metric-value">28</p>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label-row">
+            <p class="metric-label">Recurring memberships</p>
+            <span class="metric-badge metric-badge--positive">↑ 5%</span>
+          </div>
+          <p class="text-wrapper-10 metric-value">89</p>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label-row">
+            <p class="metric-label">Check ins</p>
+            <span class="metric-badge metric-badge--positive">↑ 18%</span>
+          </div>
+          <p class="text-wrapper-10 metric-value">312</p>
+        </div>
+      </div>
+    </section>
+    <section class="frame-19" data-colors-mode="dark" aria-labelledby="recent-activity-heading">
+      <div class="frame-20">
+        <h3 id="recent-activity-heading" class="text-wrapper-12">Recent activity</h3>
+      </div>
+      <article class="frame-21">
+        <div class="frame-22">
+          <h4 class="text-wrapper-13">Yoga Flow</h4>
+          <span class="text-wrapper-13">-</span>
+        </div>
+        <time class="text-wrapper-5" datetime="2026-01-11T15:51">Jan 11, 2026, 3:51 pm</time>
+      </article>
+      <article class="frame-21">
+        <div class="frame-22">
+          <h4 class="text-wrapper-13">Yoga Flow</h4>
+          <span class="text-wrapper-13">-</span>
+        </div>
+        <time class="text-wrapper-5" datetime="2026-01-12T10:22">Jan 12, 2026, 10:22 am</time>
+      </article>
+      <article class="frame-21">
+        <div class="frame-22">
+          <h4 class="text-wrapper-13">Evening Meditation</h4>
+          <span class="text-wrapper-13">-</span>
+        </div>
+        <time class="text-wrapper-5" datetime="2026-01-13T19:15">Jan 13, 2026, 7:15 pm</time>
+      </article>
+      <article class="frame-21">
+        <div class="frame-22">
+          <h4 class="text-wrapper-13">Yoga Flow</h4>
+          <span class="text-wrapper-13">-</span>
+        </div>
+        <time class="text-wrapper-5" datetime="2026-01-14T14:40">Jan 14, 2026, 2:40 pm</time>
+      </article>
+    </section>
+  </div>
+</div>
