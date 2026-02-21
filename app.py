@@ -62,6 +62,17 @@ def ai_response(prompt):
             "Net profit from top 3: $12,720"
         ]
 
+    elif 'popular' in user_input:
+        time.sleep(random.uniform(2, 4))
+        lines = [
+            "Your most popular items last quarter were:",
+            "• Yoga mats — 342 sold",
+            "• Protein smoothies — 218 sold",
+            "• Studio water bottles — 156 sold",
+            "• Block sets — 89 sold",
+            "Top 4 items: 805 units sold"
+        ]
+
     elif all(word in user_input for word in ['create', 'new']):
         new_class_signups_count = 0
         time.sleep(random.uniform(4, 6))
@@ -95,10 +106,12 @@ def ai_response(prompt):
             "You'll be redirected to review the full draft. Let me know if you want any changes to the wording, subject line, tone, or anything else before it goes out! 😊"
         ]
 
-    elif "chart" in user_input:
-        time.sleep(random.uniform(1, 2))
+    elif "average" in user_input and "spend" in user_input:
+        time.sleep(random.uniform(6, 8))
         lines = [
-            "Here’s a quick view of total sales over the last few weeks.",
+            "Here’s average spend per customer over the last few weeks.",
+            "",
+            "Average spend has increased 86% to $108 over the period.",
             "",
         ]
         for line in lines:
@@ -107,7 +120,7 @@ def ai_response(prompt):
         chart_spec = {
             "data": [{
                 "x": ["Jan 1", "Jan 8", "Jan 15", "Jan 22", "Jan 29"],
-                "y": [770, 940, 1100, 1030, 1250],
+                "y": [58, 72, 85, 92, 108],
                 "type": "scatter",
                 "mode": "lines",
                 "fill": "tozeroy",
@@ -138,6 +151,76 @@ def ai_response(prompt):
             }
         }
         yield "__CHART__" + json.dumps(chart_spec)
+        return
+
+    elif "schedule" in user_input and "class" in user_input:
+        time.sleep(random.uniform(2, 4))
+        lines = [
+            "Here's visit distribution by day and time (when people come in).",
+            "",
+            "Schedule most of your classes on weekend mornings (6–9 AM Sat/Sun) and weekday mornings (6–9 AM) — that's when visits peak.",
+            "",
+        ]
+        for line in lines:
+            yield line + "\n"
+            time.sleep(random.uniform(0.1, 0.3))
+        days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+        hours = ["6 AM", "7 AM", "8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM"]
+        z = []
+        for h in range(13):
+            row = []
+            is_peak_morning = 0 <= h <= 3
+            is_lunch_dip = 5 <= h <= 7
+            is_afternoon = 8 <= h <= 10
+            is_evening_bump = 11 <= h <= 12
+            for d in range(7):
+                is_weekend = d in (0, 6)
+                base = 35 if is_weekend else 22
+                if is_peak_morning:
+                    base += 55 if is_weekend else 38
+                elif is_lunch_dip:
+                    base -= 12
+                elif is_afternoon:
+                    base += 15
+                elif is_evening_bump:
+                    base += 18
+                noise = (random.random() - 0.5) * 24
+                row.append(max(8, min(98, round(base + noise))))
+            z.append(row)
+        heatmap_spec = {
+            "data": [{
+                "z": z,
+                "x": days,
+                "y": hours,
+                "type": "heatmap",
+                "colorscale": [[0, "rgba(4, 152, 224, 0.15)"], [0.5, "rgba(4, 152, 224, 0.5)"], [1, "rgba(4, 152, 224, 0.9)"]],
+                "showscale": False
+            }],
+            "layout": {
+                "margin": {"t": 8, "r": 8, "b": 36, "l": 56},
+                "autosize": True,
+                "paper_bgcolor": "rgba(0,0,0,0)",
+                "plot_bgcolor": "rgba(0,0,0,0)",
+                "xaxis": {
+                    "tickvals": list(range(7)),
+                    "ticktext": days,
+                    "side": "bottom",
+                    "tickfont": {"color": "rgba(122, 122, 122, 1)", "size": 12, "family": "Figtree"},
+                    "showline": False,
+                    "showgrid": False
+                },
+                "yaxis": {
+                    "tickvals": list(range(13)),
+                    "ticktext": hours,
+                    "tickfont": {"color": "rgba(122, 122, 122, 1)", "size": 12, "family": "Figtree"},
+                    "showline": False,
+                    "showgrid": False
+                },
+                "font": {"family": "Figtree"},
+                "showlegend": False
+            }
+        }
+        yield "__CHART__" + json.dumps(heatmap_spec)
         return
 
     else:
