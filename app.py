@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import time
@@ -27,6 +28,7 @@ CENTER_TEMPLATES = {
     "email": "center/email.html",
     "new_class": "center/new_class.html",
     "classes": "center/class.html",
+    "analytics": "center/analytics.html",
 }
 
 
@@ -93,6 +95,51 @@ def ai_response(prompt):
             "You'll be redirected to review the full draft. Let me know if you want any changes to the wording, subject line, tone, or anything else before it goes out! 😊"
         ]
 
+    elif "chart" in user_input:
+        time.sleep(random.uniform(1, 2))
+        lines = [
+            "Here’s a quick view of total sales over the last few weeks.",
+            "",
+        ]
+        for line in lines:
+            yield line + "\n"
+            time.sleep(random.uniform(0.1, 0.3))
+        chart_spec = {
+            "data": [{
+                "x": ["Jan 1", "Jan 8", "Jan 15", "Jan 22", "Jan 29"],
+                "y": [770, 940, 1100, 1030, 1250],
+                "type": "scatter",
+                "mode": "lines",
+                "fill": "tozeroy",
+                "fillcolor": "rgba(4, 152, 224, 0.4)",
+                "fillgradient": {
+                    "type": "vertical",
+                    "colorscale": [[0, "rgba(4, 152, 224, 0)"], [1, "rgba(4, 152, 224, 0.3)"]]
+                },
+                "line": {"color": "#0498e0", "width": 2}
+            }],
+            "layout": {
+                "margin": {"t": 0, "r": 8, "b": 24, "l": 40},
+                "autosize": True,
+                "paper_bgcolor": "rgba(0,0,0,0)",
+                "plot_bgcolor": "rgba(0,0,0,0)",
+                "xaxis": {
+                    "tickfont": {"color": "rgba(122, 122, 122, 1)", "size": 12, "family": "Figtree"},
+                    "showgrid": False,
+                    "zeroline": False
+                },
+                "yaxis": {
+                    "tickfont": {"color": "rgba(122, 122, 122, 1)", "size": 12, "family": "Figtree"},
+                    "gridcolor": "rgba(61, 61, 61, 1)",
+                    "zeroline": False,
+                    "tickprefix": "$"
+                },
+                "showlegend": False
+            }
+        }
+        yield "__CHART__" + json.dumps(chart_spec)
+        return
+
     else:
         lines = [
             "Sorry, something went wrong. Please try again."
@@ -133,14 +180,17 @@ def stream_prompt():
         yield "data: <span class=\"thinking\">Thinking...</span><br>\n\n"
 
         for chunk in ai_response(prompt):
-            safe = (
-                chunk
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\n", "<br>")
-            )
-            yield f"data: {safe}\n\n"
+            if chunk.startswith("__CHART__"):
+                yield f"data: {chunk}\n\n"
+            else:
+                safe = (
+                    chunk
+                    .replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br>")
+                )
+                yield f"data: {safe}\n\n"
 
         if redirect_center:
             yield f"data: __REDIRECT__{redirect_center}\n\n"

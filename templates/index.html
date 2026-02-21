@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='globals.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@3.3.1/plotly.min.js"></script>
   </head>
   <body>
     <div class="base" data-colors-mode="dark">
@@ -73,7 +74,7 @@
               </a>
             </li>
             <li>
-              <a href="#analytics" class="frame-4" data-colors-mode="dark">
+              <a href="/?center=analytics" class="frame-4" data-colors-mode="dark">
                 <img class="img" src="/static/img/chart-5-statistics-graph.svg" alt="" aria-hidden="true" />
                 <span class="text-wrapper-3">Analytics</span>
               </a>
@@ -134,9 +135,9 @@
           <aside class="frame-23" aria-label="AI Assistant">
             <div class="frame-24" aria-live="polite">
               {% if response %}
-                <pre class="p" id="assistant-response">{{ response }}</pre>
+                <div class="p assistant-response" id="assistant-response">{{ response }}</div>
               {% else %}
-                <pre class="p" id="assistant-response"></pre>
+                <div class="p assistant-response" id="assistant-response"></div>
               {% endif %}
             </div>
             <div class="frame-25">
@@ -220,7 +221,26 @@
               window.location.href = url.toString();
               return;
             }
-            out.innerHTML += msg;
+            if (msg.startsWith('__CHART__')) {
+              try {
+                const jsonStr = msg.slice('__CHART__'.length);
+                const spec = JSON.parse(jsonStr);
+                const chartId = 'chat-chart-' + Date.now();
+                const chartDiv = document.createElement('div');
+                chartDiv.id = chartId;
+                chartDiv.className = 'assistant-chart';
+                chartDiv.style.height = '200px';
+                chartDiv.style.width = '100%';
+                out.appendChild(chartDiv);
+                if (typeof Plotly !== 'undefined') {
+                  Plotly.newPlot(chartId, spec.data, spec.layout, { responsive: true, displayModeBar: false });
+                }
+              } catch (e) {
+                console.error('Chart render error:', e);
+              }
+            } else {
+              out.innerHTML += msg;
+            }
             out.scrollTop = out.scrollHeight;
             persistChat();
           };
