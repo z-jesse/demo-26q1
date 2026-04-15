@@ -58,7 +58,25 @@ def ai_response(prompt, history=None):
     elif 'signup' in user_input:
         new_class_signups_count += 1
 
-    if "average" in user_input and "spend" in user_input:
+    if all(word in user_input for word in ['create', 'new']) or user_input == "class":
+        time.sleep(random.uniform(1.5, 2.5))
+        _tmrw = date.today() + timedelta(days=1)
+        _tmrw_str = _tmrw.strftime('%b ') + str(_tmrw.day) + ', ' + _tmrw.strftime('%Y')
+        lines = [
+            "On it — building a class template for you.",
+            "",
+            "• Name: VIP Yoga Event - 2026",
+            f"• Date: {_tmrw_str}  ·  10:00 AM  ·  60 min",
+            "• Max participants: 20  ·  Price: $0",
+            "",
+            "Opening the form now…",
+        ]
+        for line in lines:
+            yield line + "\n"
+            time.sleep(random.uniform(0.05, 0.15))
+        return
+
+    elif "average" in user_input and "spend" in user_input:
         time.sleep(random.uniform(6, 8))
         lines = [
             "Here’s average spend per customer over the last few weeks.",
@@ -173,6 +191,40 @@ def ai_response(prompt, history=None):
             }
         }
         yield "__CHART__" + json.dumps(heatmap_spec)
+        return
+
+    elif "signup" in user_input:
+        time.sleep(random.uniform(1.2, 2.0))
+        lines = [
+            "Got it — signing Mia Watts up for VIP Yoga Event - 2026.",
+            "",
+            "• Customer: Mia Watts  ·  mia.watts@email.com",
+            "• Class: VIP Yoga Event - 2026",
+            f"• Date: {(lambda d: d.strftime('%b ') + str(d.day) + ', ' + d.strftime('%Y'))(date.today() + timedelta(days=1))}  ·  10:00 AM",
+            "• Spots remaining after signup: 19 of 20",
+            "",
+            "Done — class roster updated.",
+        ]
+        for line in lines:
+            yield line + "\n"
+            time.sleep(random.uniform(0.05, 0.15))
+        return
+
+    elif "email" in user_input:
+        time.sleep(random.uniform(2.0, 3.5))
+        lines = [
+            "Generating a promotional email for the VIP Yoga Event.",
+            "",
+            "• Subject: You're invited — VIP Yoga Event 2026",
+            "• Audience: All active members",
+            "• Tone: Warm, exclusive, action-oriented",
+            "• Key details: date, early-bird pricing, limited spots",
+            "",
+            "Draft ready — opening the email editor now.",
+        ]
+        for line in lines:
+            yield line + "\n"
+            time.sleep(random.uniform(0.05, 0.15))
         return
 
     else:
