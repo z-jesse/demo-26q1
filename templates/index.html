@@ -134,11 +134,7 @@
           </div>
           <aside class="frame-23" aria-label="AI Assistant">
             <div class="frame-24" aria-live="polite">
-              {% if response %}
-                <div class="p assistant-response" id="assistant-response">{{ response }}</div>
-              {% else %}
-                <div class="p assistant-response" id="assistant-response"></div>
-              {% endif %}
+              <div id="chat-log"></div>
             </div>
             <div class="frame-25">
               <form id="assistant-form" method="post" action="{{ url_for('home', center=center_key) }}">
@@ -161,121 +157,191 @@
       (function () {
         const form = document.getElementById("assistant-form");
         const textarea = document.getElementById("prompt-input");
-        const out = document.getElementById("assistant-response");
-        const STORAGE_KEY = "vygor-assistant-response";
+        const chatLog = document.getElementById("chat-log");
+        if (!form || !textarea || !chatLog) return;
 
-        if (!form || !textarea || !out) return;
+        const STORAGE_KEY = "vygor-chat-history-v2";
+        // [{role: "user"|"assistant", html: "...", text: "..."}]
+        let chatHistory = [];
 
-        // Restore chat from sessionStorage so it survives page changes
+        // ── Restore ──────────────────────────────────────────────────────────
         try {
           const saved = sessionStorage.getItem(STORAGE_KEY);
-          if (saved) out.innerHTML = saved;
-        } catch (e) {}
+          if (saved) { chatHistory = JSON.parse(saved); renderAll(); }
+        } catch (_) {}
 
-        let evtSource = null;
-
-        function persistChat() {
-          try {
-            sessionStorage.setItem(STORAGE_KEY, out.innerHTML);
-          } catch (e) {}
+        function escapeHtml(s) {
+          return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        function submitPrompt() {
-          let prompt;
+        function scrollToBottom() {
+          const scroller = chatLog.parentElement;
+          if (scroller) scroller.scrollTop = scroller.scrollHeight;
+        }
+
+        function addBubble(role) {
+          const row = document.createElement("div");
+          row.className = "chat-msg chat-msg-" + (role === "user" ? "user" : "ai");
+          const bubble = document.createElement("div");
+          bubble.className = "chat-bubble";
+          row.appendChild(bubble);
+          chatLog.appendChild(row);
+          scrollToBottom();
+          return bubble;
+        }
+
+        function renderChart(el) {
           try {
-            const rawValue = textarea.value || "";
-            prompt = rawValue.replace(/[\r\n\t]/g, '').trim().toLowerCase();
-            if (!prompt) return;
-          } catch (error) {
-            console.error('Error in submitPrompt:', error);
+            const spec = JSON.parse(el.getAttribute("data-chart-spec"));
+            if (typeof Plotly !== "undefined") {
+              Plotly.newPlot(el, spec.data, spec.layout, { responsive: true, displayModeBar: false });
+            }
+          } catch (_) {}
+        }
+
+        function renderAll() {
+          chatLog.innerHTML = "";
+          chatHistory.forEach(function (msg) {
+            const bubble = addBubble(msg.role);
+            bubble.innerHTML = msg.html;
+          });
+          chatLog.querySelectorAll(".assistant-chart[data-chart-spec]").forEach(renderChart);
+          scrollToBottom();
+        }
+
+        function persist() {
+          try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory)); } catch (_) {}
+        }
+
+        let currentController = null;
+
+        async function submitPrompt() {
+          const prompt = (textarea.value || "").trim();
+          if (!prompt) return;
+
+          if (prompt === "/clear") {
+            textarea.value = "";
+            chatHistory = [];
+            chatLog.innerHTML = "";
+            persist();
             return;
           }
 
-          // Clean previous stream if any
-          if (evtSource) {
-            evtSource.close();
-            evtSource = null;
-          }
-      
+          if (currentController) { currentController.abort(); currentController = null; }
+
           textarea.disabled = true;
-          out.innerHTML = "";  // clear previous content
-      
-          evtSource = new EventSource(`/api/stream?prompt=${encodeURIComponent(prompt)}`, { withCredentials: false });
-      
-          evtSource.onmessage = function (event) {
-            const msg = event.data;
-            if (msg.startsWith('__REDIRECT__')) {
-              persistChat();
-              evtSource.close();
-              evtSource = null;
-              const payload = msg.slice('__REDIRECT__'.length);
-              const url = new URL(window.location.href);
-              if (payload.includes('=')) {
-                payload.split('&').forEach(function (pair) {
-                  const eq = pair.indexOf('=');
-                  if (eq > 0) url.searchParams.set(pair.slice(0, eq), pair.slice(eq + 1));
-                });
-              } else {
-                url.searchParams.set('center', payload);
-              }
-              window.location.href = url.toString();
-              return;
-            }
-            if (msg.startsWith('__CHART__')) {
-              try {
-                const jsonStr = msg.slice('__CHART__'.length);
-                const spec = JSON.parse(jsonStr);
-                const chartId = 'chat-chart-' + Date.now();
-                const chartDiv = document.createElement('div');
-                chartDiv.id = chartId;
-                chartDiv.className = 'assistant-chart';
-                chartDiv.style.height = '200px';
-                chartDiv.style.width = '100%';
-                out.appendChild(chartDiv);
-                if (typeof Plotly !== 'undefined') {
-                  Plotly.newPlot(chartId, spec.data, spec.layout, { responsive: true, displayModeBar: false });
-                }
-              } catch (e) {
-                console.error('Chart render error:', e);
-              }
-            } else {
-              out.innerHTML += msg;
-            }
-            out.scrollTop = out.scrollHeight;
-            persistChat();
-          };
-      
-          evtSource.onerror = function () {
-            // out.innerHTML += '<br><span style="color: #dc2626;">Connection error — please try again.</span>';
-            evtSource.close();
-            evtSource = null;
-            textarea.disabled = false;
-            textarea.focus();
-          };
-      
-          evtSource.addEventListener("close", () => {
-            evtSource.close();
-            evtSource = null;
-            textarea.disabled = false;
-            textarea.focus();
-          });
-      
-          // Optional: clear input right away
           textarea.value = "";
-        }
-      
-        form.addEventListener("submit", (e) => {
-          e.preventDefault();
-          submitPrompt();
-        });
-      
-        textarea.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            submitPrompt();
+
+          // User bubble
+          const userHtml = escapeHtml(prompt);
+          chatHistory.push({ role: "user", html: userHtml, text: prompt });
+          const userBubble = addBubble("user");
+          userBubble.innerHTML = userHtml;
+          persist();
+
+          // AI bubble — thinking state
+          const aiBubble = addBubble("assistant");
+          aiBubble.innerHTML = '<span class="thinking">Thinking\u2026</span>';
+
+          // History for API: all turns before this new user message
+          const apiHistory = chatHistory.slice(0, -1).map(function (m) {
+            return { role: m.role, content: m.text || "" };
+          });
+
+          const controller = new AbortController();
+          currentController = controller;
+
+          try {
+            const resp = await fetch("/api/stream", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              signal: controller.signal,
+              body: JSON.stringify({ prompt: prompt, history: apiHistory })
+            });
+
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "";
+            let firstReal = true;
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+
+              // SSE events are delimited by \n\n
+              let boundary;
+              while ((boundary = buf.indexOf("\n\n")) !== -1) {
+                const rawEvent = buf.slice(0, boundary);
+                buf = buf.slice(boundary + 2);
+
+                for (const line of rawEvent.split("\n")) {
+                  if (!line.startsWith("data: ")) continue;
+                  const msg = line.slice(6);
+
+                  if (msg.startsWith("__REDIRECT__")) {
+                    // Commit AI response to history before navigating away
+                    const tmp = document.createElement("div");
+                    tmp.innerHTML = aiBubble.innerHTML;
+                    chatHistory.push({ role: "assistant", html: aiBubble.innerHTML, text: tmp.textContent || "" });
+                    persist();
+                    const payload = msg.slice("__REDIRECT__".length);
+                    const url = new URL(window.location.href);
+                    if (payload.includes("=")) {
+                      payload.split("&").forEach(function (pair) {
+                        const eq = pair.indexOf("=");
+                        if (eq > 0) url.searchParams.set(pair.slice(0, eq), pair.slice(eq + 1));
+                      });
+                    } else {
+                      url.searchParams.set("center", payload);
+                    }
+                    window.location.href = url.toString();
+                    return;
+                  }
+
+                  if (msg.startsWith("__CHART__")) {
+                    try {
+                      const spec = JSON.parse(msg.slice("__CHART__".length));
+                      const chartId = "chat-chart-" + Date.now();
+                      const chartDiv = document.createElement("div");
+                      chartDiv.id = chartId;
+                      chartDiv.className = "assistant-chart";
+                      chartDiv.setAttribute("data-chart-spec", JSON.stringify(spec));
+                      if (firstReal) { aiBubble.innerHTML = ""; firstReal = false; }
+                      aiBubble.appendChild(chartDiv);
+                      renderChart(chartDiv);
+                    } catch (_) {}
+                  } else {
+                    if (firstReal) { aiBubble.innerHTML = ""; firstReal = false; }
+                    aiBubble.insertAdjacentHTML("beforeend", msg);
+                  }
+                  scrollToBottom();
+                }
+              }
+            }
+          } catch (e) {
+            if (e.name !== "AbortError") {
+              if (firstReal) aiBubble.innerHTML = "";
+              aiBubble.insertAdjacentHTML("beforeend", '<span style="color:#dc2626">Connection error — please try again.</span>');
+            }
           }
+
+          // Commit AI response to history
+          const tmp = document.createElement("div");
+          tmp.innerHTML = aiBubble.innerHTML;
+          chatHistory.push({ role: "assistant", html: aiBubble.innerHTML, text: tmp.textContent || "" });
+          persist();
+
+          currentController = null;
+          textarea.disabled = false;
+          textarea.focus();
+        }
+
+        form.addEventListener("submit", function (e) { e.preventDefault(); submitPrompt(); });
+        textarea.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitPrompt(); }
         });
       })();
-      </script>
+    </script>
   </body>
 </html>
