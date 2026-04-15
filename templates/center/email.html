@@ -66,16 +66,13 @@
       </p>
       <p>Warmly,<br />Vygor Test</p>
     </div>
-    <div id="text-selection-menu" class="text-selection-menu" role="toolbar" aria-label="AI Personalize" style="display: none;">
-      <button type="button" class="text-selection-menu__btn" id="ai-personalize-btn" aria-label="AI Personalize">AI Personalize</button>
-    </div>
     </div>
   </section>
 
   <hr class="campaign-divider" />
 
   <section class="campaign-email__test" aria-labelledby="test-heading">
-    <h3 id="test-heading" class="campaign-email__section-title">Test</h3>
+    <h3 id="test-heading" class="campaign-email__section-title">Personalization Preview</h3>
 
     <div class="campaign-input-wrapper">
       <input
@@ -126,133 +123,33 @@
 </div>
 
 <script>
+  // Populate editor from AI-generated draft if present
   (function() {
-    const editor = document.querySelector('.campaign-editor');
-    const editorWrapper = document.querySelector('.campaign-editor-wrapper');
-    const menu = document.getElementById('text-selection-menu');
-    
-    if (!editor || !menu || !editorWrapper) return;
-    
-    function getSelectionRect() {
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) return null;
-      
-      const range = selection.getRangeAt(0);
-      if (range.collapsed) return null;
-      
-      // Check if selection is within the editor
-      if (!editor.contains(range.commonAncestorContainer)) return null;
-      
-      const rect = range.getBoundingClientRect();
-      const wrapperRect = editorWrapper.getBoundingClientRect();
-      
-      return {
-        top: rect.top - wrapperRect.top + editorWrapper.scrollTop,
-        left: rect.left - wrapperRect.left + editorWrapper.scrollLeft,
-        width: rect.width,
-        height: rect.height
-      };
-    }
-    
-    function showMenu() {
-      const rect = getSelectionRect();
-      if (!rect) {
-        menu.style.display = 'none';
-        return;
-      }
-      
-      // Force layout calculation
-      menu.style.display = 'flex';
-      const menuRect = menu.getBoundingClientRect();
-      const wrapperRect = editorWrapper.getBoundingClientRect();
-      
-      let top = rect.top - menuRect.height - 8;
-      let left = rect.left + (rect.width / 2) - (menuRect.width / 2);
-      
-      // Keep menu within wrapper bounds
-      if (left < 8) left = 8;
-      if (left + menuRect.width > wrapperRect.width - 8) {
-        left = wrapperRect.width - menuRect.width - 8;
-      }
-      if (top < 8) {
-        top = rect.top + rect.height + 8;
-      }
-      
-      menu.style.top = top + 'px';
-      menu.style.left = left + 'px';
-    }
-    
-    function hideMenu() {
-      menu.style.display = 'none';
-    }
-    
-    function handleAIPersonalize() {
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) return;
-      
-      const range = selection.getRangeAt(0);
-      if (range.collapsed) {
-        hideMenu();
-        return;
-      }
-      
-      // Create a span with green highlight styling
-      const span = document.createElement('span');
-      span.className = 'ai-personalized-text';
-      
-      try {
-        // Wrap the selected content
-        range.surroundContents(span);
-      } catch (e) {
-        // If surroundContents fails (e.g., selection spans multiple nodes),
-        // extract content and replace
-        const contents = range.extractContents();
-        span.appendChild(contents);
-        range.insertNode(span);
-      }
-      
-      // Clear selection
-      selection.removeAllRanges();
-      
-      hideMenu();
-      editor.focus();
-    }
-    
-    // Handle text selection
-    editor.addEventListener('mouseup', function() {
-      setTimeout(showMenu, 10);
-    });
-    
-    editor.addEventListener('keyup', function(e) {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || 
-          e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
-          e.shiftKey) {
-        setTimeout(showMenu, 10);
-      }
-    });
-    
-    // Hide menu when clicking outside or selection is cleared
-    document.addEventListener('mousedown', function(e) {
-      if (!menu.contains(e.target) && !editorWrapper.contains(e.target)) {
-        hideMenu();
-      }
-    });
-    
-    // Handle AI Personalize button click
-    const aiPersonalizeBtn = document.getElementById('ai-personalize-btn');
-    if (aiPersonalizeBtn) {
-      aiPersonalizeBtn.addEventListener('click', handleAIPersonalize);
-    }
-    
-    // Hide menu when selection changes programmatically
-    document.addEventListener('selectionchange', function() {
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-        hideMenu();
-      }
-    });
-  })();
+    var raw = sessionStorage.getItem("vygor-draft-email");
+    if (!raw) return;
+    try {
+      var draft = JSON.parse(raw);
+      sessionStorage.removeItem("vygor-draft-email");
 
+      var subjectEl = document.querySelector('.campaign-email__subject');
+      if (subjectEl && draft.subject) subjectEl.textContent = draft.subject;
+
+      function bodyToHtml(text) {
+        return text.split(/\n\n+/).filter(function(p) { return p.trim(); }).map(function(p) {
+          return "<p>" + p.replace(/\n/g, "<br>") + "</p>";
+        }).join("");
+      }
+
+      var editor = document.querySelector('.campaign-editor');
+      if (editor && draft.body) editor.innerHTML = bodyToHtml(draft.body);
+
+      var preview = document.querySelector('.campaign-preview');
+      if (preview && draft.body) preview.innerHTML = bodyToHtml(draft.body);
+    } catch (_) {}
+  })();
+</script>
+
+<script>
   // Test customer input dropdown
   (function() {
     const input = document.getElementById('test-customer');
@@ -273,35 +170,37 @@
       }, 200);
     }
     
-    function updatePreview(customerName) {
-      // Update the preview with personalized text after a 2s delay
-      setTimeout(() => {
-        const name = customerName.split(' (')[0]; // Extract name from "Name (email)"
-        preview.innerHTML = `
-          <p><strong>Hi ${name}!</strong></p>
+    async function updatePreview(customerName, customerEmail) {
+      preview.innerHTML = '<p style="color:#71717a;font-style:italic">Personalizing\u2026</p>';
 
-          <p>Thanks for coming to class again last week — we always appreciate seeing you on the mat.</p>
+      const subject = document.querySelector('.campaign-email__subject')?.textContent || '';
+      const editorEl = document.querySelector('.campaign-editor');
+      const body = editorEl ? editorEl.innerHTML : '';
 
-          <p>Because you're one of our most dedicated members and clearly value your yoga practice, we wanted to reach out with something special just for you.</p>
-          <p>
-            Join us for VIP Yoga Event - 2026, a weekend dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
-            sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
-            or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
-          </p>
-          <p>
-            We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
-            and intention. We can't wait to flow, breathe, and celebrate with you at VIP Yoga Event - 2026.
-          </p>
-          <p>Warmly,<br />Vygor Test</p>
-        `;
-      }, 2000);
+      try {
+        const resp = await fetch('/api/personalize-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject,
+            body,
+            customer: { name: customerName, email: customerEmail },
+          }),
+        });
+        const data = await resp.json();
+        if (data.html) {
+          preview.innerHTML = data.html;
+        }
+      } catch (_) {
+        preview.innerHTML = body;
+      }
     }
     
-    function selectItem(value, customerName) {
+    function selectItem(value, customerName, customerEmail) {
       input.value = value;
       hideDropdown();
       input.focus();
-      updatePreview(customerName);
+      updatePreview(customerName, customerEmail);
     }
     
     // Show dropdown on focus
@@ -316,9 +215,11 @@
       if (item) {
         const value = item.getAttribute('data-value');
         const nameElement = item.querySelector('.campaign-input-dropdown__name');
+        const emailElement = item.querySelector('.campaign-input-dropdown__email');
         const customerName = nameElement ? nameElement.textContent : value;
+        const customerEmail = emailElement ? emailElement.textContent : '';
         if (value) {
-          selectItem(value, customerName);
+          selectItem(value, customerName, customerEmail);
         }
       }
     });

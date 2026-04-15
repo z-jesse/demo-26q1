@@ -150,7 +150,7 @@ def build_chart_spec(chart_type, data, options=None):
 
 # ── Claude tool definition ────────────────────────────────────────────────────
 
-CHART_TOOLS = [
+TOOLS = [
     {
         "name": "generate_chart",
         "description": (
@@ -178,8 +178,33 @@ CHART_TOOLS = [
             },
             "required": ["chart_type", "data_source"],
         },
+    },
+    {
+        "name": "compose_email",
+        "description": (
+            "Compose a campaign email for the studio. Call this whenever the user asks to "
+            "write, draft, generate, make, or create an email or campaign message."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "subject": {
+                    "type": "string",
+                    "description": "Email subject line.",
+                },
+                "body": {
+                    "type": "string",
+                    "description": (
+                        "Email body as plain text. Separate paragraphs with double newlines. "
+                        "Include a warm greeting, 2–3 paragraphs relevant to the request, "
+                        "and end with 'Warmly,\\nVygor Test'."
+                    ),
+                },
+            },
+            "required": ["subject", "body"],
+        },
         "cache_control": {"type": "ephemeral"},
-    }
+    },
 ]
 
 _SYSTEM_BLOCK = [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
@@ -295,23 +320,6 @@ def ai_response(prompt, history=None):
             time.sleep(random.uniform(0.05, 0.15))
         return
 
-    elif "email" in user_input:
-        time.sleep(random.uniform(2.0, 3.5))
-        lines = [
-            "Generating a promotional email for the VIP Yoga Event.",
-            "",
-            "• Subject: You're invited — VIP Yoga Event 2026",
-            "• Audience: All active members",
-            "• Tone: Warm, exclusive, action-oriented",
-            "• Key details: date, early-bird pricing, limited spots",
-            "",
-            "Draft ready — opening the email editor now.",
-        ]
-        for line in lines:
-            yield line + "\n"
-            time.sleep(random.uniform(0.05, 0.15))
-        return
-
     else:
         try:
             # Build message list — cap history at last 10 turns to limit token growth
@@ -324,11 +332,13 @@ def ai_response(prompt, history=None):
                         messages.append({"role": role, "content": content})
             messages.append({"role": "user", "content": prompt.strip()})
 
-            # Only attach tools when the prompt looks chart-related
+            # Only attach tools when the prompt looks tool-relevant
             _chart_keywords = {"chart", "graph", "plot", "show", "visuali", "trend",
                                "breakdown", "heatmap", "spend", "visit", "popular", "busiest"}
+            _email_action_keywords = {"make", "write", "draft", "compose", "create", "generate"}
             wants_chart = any(kw in user_input for kw in _chart_keywords)
-            tools_arg = CHART_TOOLS if wants_chart else anthropic.NOT_GIVEN
+            wants_email = "email" in user_input and any(kw in user_input for kw in _email_action_keywords)
+            tools_arg = TOOLS if (wants_chart or wants_email) else anthropic.NOT_GIVEN
 
             # Phase 1: stream — detects whether Claude wants a chart
             with anthropic_client.messages.stream(
@@ -343,11 +353,11 @@ def ai_response(prompt, history=None):
                 final = stream.get_final_message()
 
             tool_block = next(
-                (b for b in final.content if b.type == "tool_use" and b.name == "generate_chart"),
+                (b for b in final.content if b.type == "tool_use"),
                 None,
             )
 
-            if tool_block:
+            if tool_block and tool_block.name == "generate_chart":
                 inp = tool_block.input
                 data = _stub_data(inp["data_source"])
                 if data is None:
@@ -394,6 +404,14 @@ def ai_response(prompt, history=None):
                     opts["y_prefix"] = "$"
                 yield "__CHART__" + json.dumps(build_chart_spec(inp["chart_type"], data, opts))
 
+            elif tool_block and tool_block.name == "compose_email":
+                inp = tool_block.input
+                subject = inp.get("subject", "")
+                body = inp.get("body", "")
+                yield "Draft ready — opening the email editor now.\n"
+                yield "__EMAIL__" + json.dumps({"subject": subject, "body": body})
+                yield "__REDIRECT__email"
+
         except Exception:
             yield "Sorry, something went wrong. Please try again."
         return
@@ -420,14 +438,12 @@ def stream_prompt():
         redirect_after_stream = "new_class"
     elif "signup" in user_input:
         redirect_after_stream = "center=classes&new=1"
-    elif "email" in user_input:
-        redirect_after_stream = "email"
     else:
         redirect_after_stream = None
 
     def event_stream():
         for chunk in ai_response(prompt, history=history):
-            if chunk.startswith("__CHART__"):
+            if chunk.startswith(("__CHART__", "__EMAIL__", "__REDIRECT__")):
                 yield f"data: {chunk}\n\n"
             else:
                 safe = (
@@ -447,6 +463,47 @@ def stream_prompt():
         mimetype="text/event-stream",
         headers={"Cache-Control": "no-cache"}
     )
+
+
+@app.route('/api/personalize-email', methods=['POST'])
+def personalize_email():
+    data = request.get_json(silent=True) or {}
+    subject = (data.get('subject') or '').strip()
+    body_html = (data.get('body') or '').strip()
+    customer = data.get('customer') or {}
+    name = customer.get('name', 'the customer')
+    email = customer.get('email', '')
+
+    # Stub profile — replace with real data when available
+    customer_context = (
+        f"Name: {name}, Email: {email}, "
+        f"Membership: Active (3 months), Last visit: last week, "
+        f"Preferred class: Vinyasa Flow, Classes attended: 14"
+    )
+
+    try:
+        msg = anthropic_client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            system=_SYSTEM_BLOCK,
+            messages=[{
+                "role": "user",
+                "content": (
+                    f"Personalize the following marketing email for a specific customer. "
+                    f"Customer: {customer_context}\n\n"
+                    f"Subject: {subject}\n\n"
+                    f"Email body (HTML):\n{body_html}\n\n"
+                    f"Rewrite the body personalized for this customer — use their first name "
+                    f"in the greeting, weave in 1–2 natural references to their activity or "
+                    f"membership, and keep the core message intact. "
+                    f"Output only the HTML body using <p> tags. No preamble, no subject line."
+                ),
+            }],
+        )
+        html = msg.content[0].text if msg.content else ""
+        return jsonify({"html": html})
+    except Exception:
+        return jsonify({"error": "Personalization failed."}), 500
 
 
 @app.route('/login', methods=['GET', 'POST'])

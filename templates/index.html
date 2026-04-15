@@ -263,6 +263,7 @@
             const decoder = new TextDecoder();
             let buf = "";
             let firstReal = true;
+            let streamHtml = "";
 
             while (true) {
               const { done, value } = await reader.read();
@@ -299,7 +300,11 @@
                     return;
                   }
 
-                  if (msg.startsWith("__CHART__")) {
+                  if (msg.startsWith("__EMAIL__")) {
+                    try {
+                      sessionStorage.setItem("vygor-draft-email", msg.slice("__EMAIL__".length));
+                    } catch (_) {}
+                  } else if (msg.startsWith("__CHART__")) {
                     try {
                       const spec = JSON.parse(msg.slice("__CHART__".length));
                       const chartId = "chat-chart-" + Date.now();
@@ -312,8 +317,9 @@
                       renderChart(chartDiv);
                     } catch (_) {}
                   } else {
-                    if (firstReal) { aiBubble.innerHTML = ""; firstReal = false; }
-                    aiBubble.insertAdjacentHTML("beforeend", msg);
+                    if (firstReal) { streamHtml = ""; aiBubble.innerHTML = ""; firstReal = false; }
+                    streamHtml += msg;
+                    aiBubble.innerHTML = streamHtml;
                   }
                   scrollToBottom();
                 }
@@ -321,8 +327,8 @@
             }
           } catch (e) {
             if (e.name !== "AbortError") {
-              if (firstReal) aiBubble.innerHTML = "";
-              aiBubble.insertAdjacentHTML("beforeend", '<span style="color:#dc2626">Connection error — please try again.</span>');
+              streamHtml = '<span style="color:#dc2626">Connection error — please try again.</span>';
+              aiBubble.innerHTML = streamHtml;
             }
           }
 
