@@ -205,9 +205,52 @@ TOOLS = [
         },
         "cache_control": {"type": "ephemeral"},
     },
+    {
+        "name": "create_class",
+        "description": (
+            "Create a new class or event for the studio. Call this whenever the user asks to "
+            "create, add, schedule, or set up a new class or event. "
+            "Always call this tool immediately — do NOT ask the user for more details. "
+            "Infer sensible defaults for any missing fields: default date to tomorrow, "
+            "time to 10:00 AM, duration to 60 minutes, max participants to 20, price to 0."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the class or event.",
+                },
+                "date": {
+                    "type": "string",
+                    "description": "Date for the class formatted exactly as 'Mon D, YYYY' (e.g. 'Apr 16, 2026'). Resolve relative terms like 'tomorrow' or 'next Monday' to actual calendar dates using today's date.",
+                },
+                "time": {
+                    "type": "string",
+                    "description": "Start time (e.g. '10:00 AM').",
+                },
+                "duration_minutes": {
+                    "type": "integer",
+                    "description": "Duration in minutes.",
+                },
+                "max_participants": {
+                    "type": "integer",
+                    "description": "Maximum number of participants.",
+                },
+                "price": {
+                    "type": "number",
+                    "description": "Price per participant in dollars.",
+                },
+            },
+            "required": ["name"],
+        },
+    },
 ]
 
-_SYSTEM_BLOCK = [{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}]
+def _system_block():
+    today = date.today()
+    today_str = today.strftime('%b ') + str(today.day) + ', ' + today.strftime('%Y')
+    return [{"type": "text", "text": SYSTEM_PROMPT + f" Today's date is {today_str}.", "cache_control": {"type": "ephemeral"}}]
 
 
 def _stub_data(data_source):
@@ -280,30 +323,10 @@ def ai_response(prompt, history=None):
     global new_class_signups_count
 
     # Track state changes that are reflected in the UI
-    if all(word in user_input for word in ['create', 'new']):
-        new_class_signups_count = 0
-    elif 'signup' in user_input:
+    if 'signup' in user_input:
         new_class_signups_count += 1
 
-    if all(word in user_input for word in ['create', 'new']) or user_input == "class":
-        time.sleep(random.uniform(1.5, 2.5))
-        _tmrw = date.today() + timedelta(days=1)
-        _tmrw_str = _tmrw.strftime('%b ') + str(_tmrw.day) + ', ' + _tmrw.strftime('%Y')
-        lines = [
-            "On it — building a class template for you.",
-            "",
-            "• Name: VIP Yoga Event - 2026",
-            f"• Date: {_tmrw_str}  ·  10:00 AM  ·  60 min",
-            "• Max participants: 20  ·  Price: $0",
-            "",
-            "Opening the form now…",
-        ]
-        for line in lines:
-            yield line + "\n"
-            time.sleep(random.uniform(0.05, 0.15))
-        return
-
-    elif "signup" in user_input:
+    if "signup" in user_input:
         time.sleep(random.uniform(1.2, 2.0))
         lines = [
             "Got it — signing Mia Watts up for VIP Yoga Event - 2026.",
@@ -336,16 +359,39 @@ def ai_response(prompt, history=None):
             _chart_keywords = {"chart", "graph", "plot", "show", "visuali", "trend",
                                "breakdown", "heatmap", "spend", "visit", "popular", "busiest"}
             _email_action_keywords = {"make", "write", "draft", "compose", "create", "generate"}
+            _class_action_keywords = {"create", "new", "add", "schedule", "set up"}
             wants_chart = any(kw in user_input for kw in _chart_keywords)
             wants_email = "email" in user_input and any(kw in user_input for kw in _email_action_keywords)
-            tools_arg = TOOLS if (wants_chart or wants_email) else anthropic.NOT_GIVEN
+            wants_class = (
+                any(kw in user_input for kw in _class_action_keywords)
+                and any(kw in user_input for kw in {"class", "event", "session"})
+            ) or user_input == "class"
+            if wants_chart or wants_email or wants_class:
+                _td = date.today()
+                _today_str = _td.strftime('%b ') + str(_td.day) + ', ' + _td.strftime('%Y')
+                tools_arg = []
+                for _t in TOOLS:
+                    if _t["name"] == "create_class":
+                        import copy
+                        _t = copy.deepcopy(_t)
+                        _t["input_schema"]["properties"]["date"]["description"] += f" Today is {_today_str}."
+                    tools_arg.append(_t)
+            else:
+                tools_arg = anthropic.NOT_GIVEN
+
+            # Force tool call when the only intent is class creation
+            tool_choice_arg = (
+                {"type": "any"} if wants_class and not wants_chart and not wants_email
+                else anthropic.NOT_GIVEN
+            )
 
             # Phase 1: stream — detects whether Claude wants a chart
             with anthropic_client.messages.stream(
                 model="claude-haiku-4-5-20251001",
                 max_tokens=1024,
-                system=_SYSTEM_BLOCK,
+                system=_system_block(),
                 tools=tools_arg,
+                tool_choice=tool_choice_arg,
                 messages=messages,
             ) as stream:
                 for text in stream.text_stream:
@@ -392,7 +438,7 @@ def ai_response(prompt, history=None):
                 with anthropic_client.messages.stream(
                     model="claude-haiku-4-5-20251001",
                     max_tokens=512,
-                    system=_SYSTEM_BLOCK,
+                    system=_system_block(),
                     messages=follow_up,
                 ) as stream2:
                     for text in stream2.text_stream:
@@ -411,6 +457,30 @@ def ai_response(prompt, history=None):
                 yield "Draft ready — opening the email editor now.\n"
                 yield "__EMAIL__" + json.dumps({"subject": subject, "body": body})
                 yield "__REDIRECT__email"
+
+            elif tool_block and tool_block.name == "create_class":
+                new_class_signups_count = 0
+                inp = tool_block.input
+                name = inp.get("name", "New Class")
+                date_str = inp.get("date", "tomorrow")
+                time_str = inp.get("time", "10:00 AM")
+                duration = inp.get("duration_minutes", 60)
+                max_p = inp.get("max_participants", 20)
+                price = inp.get("price", 0)
+                yield "On it — building a class template for you.\n\n"
+                yield f"• Name: {name}\n"
+                yield f"• Date: {date_str}  ·  {time_str}  ·  {duration} min\n"
+                yield f"• Max participants: {max_p}  ·  Price: ${int(price)}\n\n"
+                yield "Opening the form now…\n"
+                yield "__CLASS__" + json.dumps({
+                    "name": name,
+                    "date": date_str,
+                    "time": time_str,
+                    "duration_minutes": duration,
+                    "max_participants": max_p,
+                    "price": price,
+                })
+                yield "__REDIRECT__new_class"
 
         except Exception:
             yield "Sorry, something went wrong. Please try again."
@@ -434,16 +504,14 @@ def stream_prompt():
         return Response(stream_with_context(empty_gen()), mimetype="text/event-stream")
 
     user_input = prompt.strip().lower()
-    if user_input == "class" or all(w in user_input for w in ("create", "new")):
-        redirect_after_stream = "new_class"
-    elif "signup" in user_input:
+    if "signup" in user_input:
         redirect_after_stream = "center=classes&new=1"
     else:
         redirect_after_stream = None
 
     def event_stream():
         for chunk in ai_response(prompt, history=history):
-            if chunk.startswith(("__CHART__", "__EMAIL__", "__REDIRECT__")):
+            if chunk.startswith(("__CHART__", "__EMAIL__", "__CLASS__", "__REDIRECT__")):
                 yield f"data: {chunk}\n\n"
             else:
                 safe = (
@@ -485,7 +553,7 @@ def personalize_email():
         msg = anthropic_client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=512,
-            system=_SYSTEM_BLOCK,
+            system=_system_block(),
             messages=[{
                 "role": "user",
                 "content": (

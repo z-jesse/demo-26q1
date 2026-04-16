@@ -304,6 +304,10 @@
                     try {
                       sessionStorage.setItem("vygor-draft-email", msg.slice("__EMAIL__".length));
                     } catch (_) {}
+                  } else if (msg.startsWith("__CLASS__")) {
+                    try {
+                      sessionStorage.setItem("vygor-new-class", msg.slice("__CLASS__".length));
+                    } catch (_) {}
                   } else if (msg.startsWith("__CHART__")) {
                     try {
                       const spec = JSON.parse(msg.slice("__CHART__".length));
@@ -347,6 +351,61 @@
         textarea.addEventListener("keydown", function (e) {
           if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submitPrompt(); }
         });
+      })();
+
+      // Fill new-class form with AI-inferred details on redirect
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("center") !== "new_class") return;
+        var raw;
+        try { raw = sessionStorage.getItem("vygor-new-class"); } catch (_) { return; }
+        if (!raw) return;
+        var data;
+        try { data = JSON.parse(raw); sessionStorage.removeItem("vygor-new-class"); } catch (_) { return; }
+        function fill(id, val) {
+          var el = document.getElementById(id);
+          if (el && val != null && val !== "") el.textContent = val;
+        }
+        fill("nc-name", data.name);
+        fill("nc-date", data.date);
+        fill("nc-time", data.time);
+        fill("nc-duration", data.duration_minutes != null ? data.duration_minutes + " minutes" : null);
+        fill("nc-max", data.max_participants);
+        fill("nc-price", data.price != null ? data.price : null);
+
+        // Intercept "Add New Class" — save current field values before navigating to class list
+        var addBtn = document.querySelector(".button-3");
+        if (addBtn) {
+          addBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            var name = (document.getElementById("nc-name") || {}).textContent || "";
+            var date = (document.getElementById("nc-date") || {}).textContent || "";
+            var time = (document.getElementById("nc-time") || {}).textContent || "";
+            try {
+              sessionStorage.setItem("vygor-created-class", JSON.stringify({ name: name, date: date, time: time }));
+            } catch (_) {}
+            window.location.href = "/?center=classes&new=1";
+          });
+        }
+      })();
+
+      // Fill new class row in class list with details saved from the form
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("center") !== "classes") return;
+        var raw;
+        try { raw = sessionStorage.getItem("vygor-created-class"); } catch (_) { return; }
+        if (!raw) return;
+        var data;
+        try { data = JSON.parse(raw); } catch (_) { return; }
+        if (data.name) {
+          var el = document.getElementById("cl-name");
+          if (el) el.textContent = data.name;
+        }
+        if (data.date || data.time) {
+          var el = document.getElementById("cl-date");
+          if (el) el.textContent = (data.date || "") + (data.time ? " @ " + data.time : "");
+        }
       })();
     </script>
   </body>
