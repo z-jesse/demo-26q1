@@ -462,7 +462,14 @@ def ai_response(prompt, history=None):
                 new_class_signups_count = 0
                 inp = tool_block.input
                 name = inp.get("name", "New Class")
-                date_str = inp.get("date", "tomorrow")
+                _raw_date = inp.get("date", "")
+                # Resolve relative words or missing values to a real date string
+                _tomorrow = date.today() + timedelta(days=1)
+                _tomorrow_str = _tomorrow.strftime('%b ') + str(_tomorrow.day) + ', ' + _tomorrow.strftime('%Y')
+                if not _raw_date or _raw_date.lower() in {"tomorrow", "today", "next week", "tbd", ""}:
+                    date_str = _tomorrow_str
+                else:
+                    date_str = _raw_date
                 time_str = inp.get("time", "10:00 AM")
                 duration = inp.get("duration_minutes", 60)
                 max_p = inp.get("max_participants", 20)
