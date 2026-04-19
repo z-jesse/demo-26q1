@@ -5,6 +5,7 @@ import time
 from datetime import date, timedelta
 
 import anthropic
+import httpx
 from flask import Flask, render_template, request, jsonify, stream_with_context, Response, redirect, url_for, session
 
 app = Flask(__name__)
@@ -13,12 +14,30 @@ SITE_PASSWORD = os.environ.get("SITE_PASSWORD", "vygor")
 
 anthropic_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
+
+def _fetch_docs(url: str, max_chars: int = 12000) -> str:
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            response = client.get(url)
+            response.raise_for_status()
+        text = response.text
+        if len(text) > max_chars:
+            text = text[:max_chars] + f"\n... [truncated — see {url} for full docs]"
+        return text
+    except Exception as e:
+        print(f"[docs] Failed to load {url}: {e}")
+        return ""
+
+
+_DOCS = _fetch_docs("https://docs.vygorai.com/llms-full.txt")
+
 SYSTEM_PROMPT = (
     "You are Vygor Intelligence, an AI assistant built into Vygor, a studio management "
     "platform for yoga and fitness businesses. You help owners with analytics, scheduling, "
     "customer management, and marketing. Keep responses concise and actionable — 2 to 5 "
     "sentences or a short bullet list using the bullet character •. Do not use markdown "
     "asterisks for bold text. The studio in this demo is a yoga studio called 'Vygor Test'."
+    + ("\n\n=== Vygor Platform Documentation ===\n" + _DOCS if _DOCS else "")
 )
 
 
