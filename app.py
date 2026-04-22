@@ -8,6 +8,15 @@ import anthropic
 import httpx
 from flask import Flask, render_template, request, jsonify, stream_with_context, Response, redirect, url_for, session
 
+from data import (
+    active_vs_cancelled,
+    checkins_by_time,
+    membership_plans,
+    popular_classes,
+    signups_by_month,
+    studio_summary,
+)
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
 SITE_PASSWORD = os.environ.get("SITE_PASSWORD", "vygor")
@@ -37,6 +46,13 @@ SYSTEM_PROMPT = (
     "customer management, and marketing. Keep responses concise and actionable — 2 to 5 "
     "sentences or a short bullet list using the bullet character •. Do not use markdown "
     "asterisks for bold text. The studio in this demo is a yoga studio called 'Vygor Test'."
+    "\n\nWhenever the user's question can be answered by one of the generate_chart data "
+    "sources (check-ins by time, popular classes, membership plans, signups by month, "
+    "active vs cancelled), prefer calling generate_chart over answering in prose. Lean "
+    "toward showing the data — call the tool eagerly, including for broad questions like "
+    "'how are we doing?', 'what's popular?', or 'any trends?'. Only skip the chart if the "
+    "question is clearly unrelated to those datasets."
+    + "\n\n=== Studio Data Snapshot ===\n" + studio_summary()
     + ("\n\n=== Vygor Platform Documentation ===\n" + _DOCS if _DOCS else "")
 )
 
@@ -182,16 +198,25 @@ TOOLS = [
             "properties": {
                 "chart_type": {
                     "type": "string",
-                    "enum": ["line", "bar", "heatmap", "donut"],
+                    "enum": ["line", "bar", "donut"],
                     "description": "Plotly chart type to render.",
                 },
                 "data_source": {
                     "type": "string",
-                    "enum": ["average_spend_by_week", "visit_heatmap"],
+                    "enum": [
+                        "checkins_by_time",
+                        "popular_classes",
+                        "membership_plans",
+                        "signups_by_month",
+                        "active_vs_cancelled",
+                    ],
                     "description": (
-                        "Which dataset to use. "
-                        "average_spend_by_week: weekly avg spend per customer (line chart). "
-                        "visit_heatmap: visit counts by day-of-week and hour (heatmap)."
+                        "Which dataset to use:\n"
+                        "- checkins_by_time: total check-ins per time slot — use chart_type 'bar'.\n"
+                        "- popular_classes: top class templates by check-ins — use chart_type 'bar'.\n"
+                        "- membership_plans: active members grouped by plan — use chart_type 'donut'.\n"
+                        "- signups_by_month: new memberships per calendar month — use chart_type 'line'.\n"
+                        "- active_vs_cancelled: active vs cancelled membership records — use chart_type 'donut'."
                     ),
                 },
             },
@@ -272,66 +297,47 @@ def _system_block():
     return [{"type": "text", "text": SYSTEM_PROMPT + f" Today's date is {today_str}.", "cache_control": {"type": "ephemeral"}}]
 
 
-def _stub_data(data_source):
-    """Placeholder data until data.py is wired in."""
-    if data_source == "average_spend_by_week":
+_CHART_DATA_LOADERS = {
+    "checkins_by_time": checkins_by_time,
+    "popular_classes": popular_classes,
+    "membership_plans": membership_plans,
+    "signups_by_month": signups_by_month,
+    "active_vs_cancelled": active_vs_cancelled,
+}
+
+
+def _chart_data(data_source):
+    loader = _CHART_DATA_LOADERS.get(data_source)
+    return loader() if loader else None
+
+
+def _data_for_claude(data_source, payload):
+    """Return a condensed, analysis-friendly view of payload for Claude to reason about."""
+    if "x" in payload and "y" in payload:
+        xs, ys = payload["x"], payload["y"]
+        if not ys:
+            return {"items": [], "total": 0}
+        max_idx = ys.index(max(ys))
+        min_idx = ys.index(min(ys))
         return {
-            "x": ["Jan 1", "Jan 8", "Jan 15", "Jan 22", "Jan 29"],
-            "y": [58, 72, 85, 92, 108],
+            "items": list(zip(xs, ys)),
+            "total": sum(ys),
+            "max": {"label": xs[max_idx], "value": ys[max_idx]},
+            "min": {"label": xs[min_idx], "value": ys[min_idx]},
         }
-    if data_source == "visit_heatmap":
-        days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
-        hours = ["6 AM", "7 AM", "8 AM", "9 AM", "10 AM", "11 AM",
-                 "12 PM", "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM"]
-        z = []
-        for h in range(13):
-            row = []
-            is_peak = 0 <= h <= 3
-            is_dip = 5 <= h <= 7
-            is_afternoon = 8 <= h <= 10
-            is_evening = 11 <= h <= 12
-            for d in range(7):
-                weekend = d in (0, 6)
-                base = 35 if weekend else 22
-                if is_peak:
-                    base += 55 if weekend else 38
-                elif is_dip:
-                    base -= 12
-                elif is_afternoon:
-                    base += 15
-                elif is_evening:
-                    base += 18
-                noise = (random.random() - 0.5) * 24
-                row.append(max(8, min(98, round(base + noise))))
-            z.append(row)
-        return {"x": days, "y": hours, "z": z}
-    return None
-
-
-def _data_for_claude(data_source, data):
-    """Return a condensed, analysis-friendly version of data for Claude to reason about."""
-    if data_source == "average_spend_by_week":
-        ys = data["y"]
-        change_pct = round((ys[-1] - ys[0]) / ys[0] * 100)
+    if "labels" in payload and "values" in payload:
+        labels, values = payload["labels"], payload["values"]
+        total = sum(values)
         return {
-            "weeks": list(zip(data["x"], ys)),
-            "min": min(ys),
-            "max": max(ys),
-            "change_pct": change_pct,
+            "breakdown": [
+                {"label": l, "value": v,
+                 "pct": round(v / total * 100) if total else 0}
+                for l, v in zip(labels, values)
+            ],
+            "total": total,
         }
-    if data_source == "visit_heatmap":
-        days, hours, z = data["x"], data["y"], data["z"]
-        day_totals = {
-            days[d]: sum(z[h][d] for h in range(len(hours)))
-            for d in range(len(days))
-        }
-        hour_totals = {
-            hours[h]: sum(z[h][d] for d in range(len(days)))
-            for h in range(len(hours))
-        }
-        return {"day_totals": day_totals, "hour_totals": hour_totals}
-    return data
-
+    return payload
+1
 
 def ai_response(prompt, history=None):
     if not prompt or not prompt.strip():
@@ -348,10 +354,10 @@ def ai_response(prompt, history=None):
     if "signup" in user_input:
         time.sleep(random.uniform(1.2, 2.0))
         lines = [
-            "Got it — signing Mia Watts up for VIP Yoga Event - 2026.",
+            "Got it — signing Mia Watts up for ALO + Wild Thing: Reset and Renewal.",
             "",
             "• Customer: Mia Watts  ·  mia.watts@email.com",
-            "• Class: VIP Yoga Event - 2026",
+            "• Class: ALO + Wild Thing: Reset and Renewal",
             f"• Date: {(lambda d: d.strftime('%b ') + str(d.day) + ', ' + d.strftime('%Y'))(date.today() + timedelta(days=1))}  ·  10:00 AM",
             "• Spots remaining after signup: 19 of 20",
             "",
@@ -374,9 +380,12 @@ def ai_response(prompt, history=None):
                         messages.append({"role": role, "content": content})
             messages.append({"role": "user", "content": prompt.strip()})
 
-            # Only attach tools when the prompt looks tool-relevant
+            # Chart tool is always attached so Claude can visualise eagerly.
+            # Email/class tools stay gated — they trigger page redirects.
             _chart_keywords = {"chart", "graph", "plot", "show", "visuali", "trend",
-                               "breakdown", "heatmap", "spend", "visit", "popular", "busiest"}
+                               "breakdown", "popular", "busiest", "busy", "member",
+                               "signup", "sign-up", "sign up", "cancel", "renewal",
+                               "active", "checkin", "check-in", "checked", "plan"}
             _email_action_keywords = {"make", "write", "draft", "compose", "create", "generate"}
             _class_action_keywords = {"create", "new", "add", "schedule", "set up"}
             wants_chart = any(kw in user_input for kw in _chart_keywords)
@@ -385,24 +394,29 @@ def ai_response(prompt, history=None):
                 any(kw in user_input for kw in _class_action_keywords)
                 and any(kw in user_input for kw in {"class", "event", "session"})
             ) or user_input == "class"
-            if wants_chart or wants_email or wants_class:
-                _td = date.today()
-                _today_str = _td.strftime('%b ') + str(_td.day) + ', ' + _td.strftime('%Y')
-                tools_arg = []
-                for _t in TOOLS:
-                    if _t["name"] == "create_class":
-                        import copy
-                        _t = copy.deepcopy(_t)
-                        _t["input_schema"]["properties"]["date"]["description"] += f" Today is {_today_str}."
-                    tools_arg.append(_t)
-            else:
-                tools_arg = anthropic.NOT_GIVEN
 
-            # Force tool call when the only intent is class creation
-            tool_choice_arg = (
-                {"type": "any"} if wants_class and not wants_chart and not wants_email
-                else anthropic.NOT_GIVEN
-            )
+            _td = date.today()
+            _today_str = _td.strftime('%b ') + str(_td.day) + ', ' + _td.strftime('%Y')
+            tools_arg = []
+            for _t in TOOLS:
+                if _t["name"] == "generate_chart":
+                    tools_arg.append(_t)
+                elif _t["name"] == "compose_email" and wants_email:
+                    tools_arg.append(_t)
+                elif _t["name"] == "create_class" and wants_class:
+                    import copy
+                    _patched = copy.deepcopy(_t)
+                    _patched["input_schema"]["properties"]["date"]["description"] += f" Today is {_today_str}."
+                    tools_arg.append(_patched)
+
+            # Pin the tool by name when intent is unambiguous, so the eagerly-
+            # attached generate_chart tool can't steal the call.
+            if wants_class and not wants_chart and not wants_email:
+                tool_choice_arg = {"type": "tool", "name": "create_class"}
+            elif wants_email and not wants_chart and not wants_class:
+                tool_choice_arg = {"type": "tool", "name": "compose_email"}
+            else:
+                tool_choice_arg = anthropic.NOT_GIVEN
 
             # Phase 1: stream — detects whether Claude wants a chart
             with anthropic_client.messages.stream(
@@ -424,7 +438,7 @@ def ai_response(prompt, history=None):
 
             if tool_block and tool_block.name == "generate_chart":
                 inp = tool_block.input
-                data = _stub_data(inp["data_source"])
+                data = _chart_data(inp["data_source"])
                 if data is None:
                     yield "\nData for that metric isn't available yet."
                     return
@@ -464,10 +478,7 @@ def ai_response(prompt, history=None):
                         yield text
 
                 # Yield the chart after the summary
-                opts = {}
-                if inp["data_source"] == "average_spend_by_week":
-                    opts["y_prefix"] = "$"
-                yield "__CHART__" + json.dumps(build_chart_spec(inp["chart_type"], data, opts))
+                yield "__CHART__" + json.dumps(build_chart_spec(inp["chart_type"], data))
 
             elif tool_block and tool_block.name == "compose_email":
                 inp = tool_block.input
@@ -572,7 +583,7 @@ def personalize_email():
     customer_context = (
         f"Name: {name}, Email: {email}, "
         f"Membership: Active (3 months), Last visit: last week, "
-        f"Preferred class: Vinyasa Flow, Classes attended: 14"
+        f"Preferred class: Wild Thing Flow, Classes attended: 14"
     )
 
     try:
