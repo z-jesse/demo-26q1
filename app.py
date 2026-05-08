@@ -69,6 +69,10 @@ def require_login():
 # Server-side counter for the new VIP event row signups (classes list)
 new_class_signups_count = 0
 
+# Last class created via the create_class tool. The signup handler uses this
+# so "sign up Mia for that class" refers to whatever the user just created.
+last_created_class = None
+
 CENTER_TEMPLATES = {
     "dashboard": "center/dashboard.html",
     "email": "center/email.html",
@@ -345,21 +349,34 @@ def ai_response(prompt, history=None):
         return
 
     user_input = prompt.strip().lower()
-    global new_class_signups_count
+    global new_class_signups_count, last_created_class
+
+    is_signup = "signup" in user_input or "sign up" in user_input
 
     # Track state changes that are reflected in the UI
-    if 'signup' in user_input:
+    if is_signup:
         new_class_signups_count += 1
 
-    if "signup" in user_input:
+    if is_signup:
         time.sleep(random.uniform(1.2, 2.0))
+        _tomorrow = date.today() + timedelta(days=1)
+        _tomorrow_str = _tomorrow.strftime('%b ') + str(_tomorrow.day) + ', ' + _tomorrow.strftime('%Y')
+        cls = last_created_class or {
+            "name": "ALO + Wild Thing: Reset and Renewal",
+            "date": _tomorrow_str,
+            "time": "10:00 AM",
+            "max_participants": 20,
+        }
+        max_p = cls["max_participants"] or 20
+        spots_taken = new_class_signups_count
+        spots_remaining = max(0, max_p - spots_taken)
         lines = [
-            "Got it — signing Mia Watts up for ALO + Wild Thing: Reset and Renewal.",
+            f"Got it — signing Mia Watts up for {cls['name']}.",
             "",
             "• Customer: Mia Watts  ·  mia.watts@email.com",
-            "• Class: ALO + Wild Thing: Reset and Renewal",
-            f"• Date: {(lambda d: d.strftime('%b ') + str(d.day) + ', ' + d.strftime('%Y'))(date.today() + timedelta(days=1))}  ·  10:00 AM",
-            "• Spots remaining after signup: 19 of 20",
+            f"• Class: {cls['name']}",
+            f"• Date: {cls['date']}  ·  {cls['time']}",
+            f"• Spots remaining after signup: {spots_remaining} of {max_p}",
             "",
             "Done — class roster updated.",
         ]
@@ -380,51 +397,27 @@ def ai_response(prompt, history=None):
                         messages.append({"role": role, "content": content})
             messages.append({"role": "user", "content": prompt.strip()})
 
-            # Chart tool is always attached so Claude can visualise eagerly.
-            # Email/class tools stay gated — they trigger page redirects.
-            _chart_keywords = {"chart", "graph", "plot", "show", "visuali", "trend",
-                               "breakdown", "popular", "busiest", "busy", "member",
-                               "signup", "sign-up", "sign up", "cancel", "renewal",
-                               "active", "checkin", "check-in", "checked", "plan"}
-            _email_action_keywords = {"make", "write", "draft", "compose", "create", "generate"}
-            _class_action_keywords = {"create", "new", "add", "schedule", "set up"}
-            wants_chart = any(kw in user_input for kw in _chart_keywords)
-            wants_email = "email" in user_input and any(kw in user_input for kw in _email_action_keywords)
-            wants_class = (
-                any(kw in user_input for kw in _class_action_keywords)
-                and any(kw in user_input for kw in {"class", "event", "session"})
-            ) or user_input == "class"
-
+            # Attach all tools every call and let Claude pick (default tool_choice
+            # is "auto"). Patch today's date into create_class's date description
+            # so relative terms like "tomorrow" resolve correctly.
+            import copy
             _td = date.today()
             _today_str = _td.strftime('%b ') + str(_td.day) + ', ' + _td.strftime('%Y')
             tools_arg = []
             for _t in TOOLS:
-                if _t["name"] == "generate_chart":
-                    tools_arg.append(_t)
-                elif _t["name"] == "compose_email" and wants_email:
-                    tools_arg.append(_t)
-                elif _t["name"] == "create_class" and wants_class:
-                    import copy
+                if _t["name"] == "create_class":
                     _patched = copy.deepcopy(_t)
                     _patched["input_schema"]["properties"]["date"]["description"] += f" Today is {_today_str}."
                     tools_arg.append(_patched)
+                else:
+                    tools_arg.append(_t)
 
-            # Pin the tool by name when intent is unambiguous, so the eagerly-
-            # attached generate_chart tool can't steal the call.
-            if wants_class and not wants_chart and not wants_email:
-                tool_choice_arg = {"type": "tool", "name": "create_class"}
-            elif wants_email and not wants_chart and not wants_class:
-                tool_choice_arg = {"type": "tool", "name": "compose_email"}
-            else:
-                tool_choice_arg = anthropic.NOT_GIVEN
-
-            # Phase 1: stream — detects whether Claude wants a chart
+            # Phase 1: stream — Claude chooses whether to call a tool
             with anthropic_client.messages.stream(
-                model="claude-haiku-4-5-20251001",
+                model="claude-sonnet-4-6",
                 max_tokens=1024,
                 system=_system_block(),
                 tools=tools_arg,
-                tool_choice=tool_choice_arg,
                 messages=messages,
             ) as stream:
                 for text in stream.text_stream:
@@ -443,7 +436,9 @@ def ai_response(prompt, history=None):
                     yield "\nData for that metric isn't available yet."
                     return
 
-                # Build the assistant turn to send back (required by the API)
+                # Build the assistant turn to send back (required by the API).
+                # Stop after the first tool_use — every tool_use needs a matching
+                # tool_result in the next message, and we only build one below.
                 assistant_content = []
                 for block in final.content:
                     if block.type == "text":
@@ -455,6 +450,7 @@ def ai_response(prompt, history=None):
                             "name": block.name,
                             "input": block.input,
                         })
+                        break
 
                 # Phase 2: return real data so Claude writes an informed summary
                 follow_up = messages + [
@@ -469,7 +465,7 @@ def ai_response(prompt, history=None):
                     },
                 ]
                 with anthropic_client.messages.stream(
-                    model="claude-haiku-4-5-20251001",
+                    model="claude-sonnet-4-6",
                     max_tokens=512,
                     system=_system_block(),
                     messages=follow_up,
@@ -504,6 +500,12 @@ def ai_response(prompt, history=None):
                 duration = inp.get("duration_minutes", 60)
                 max_p = inp.get("max_participants", 20)
                 price = inp.get("price", 0)
+                last_created_class = {
+                    "name": name,
+                    "date": date_str,
+                    "time": time_str,
+                    "max_participants": max_p,
+                }
                 yield "On it — building a class template for you.\n\n"
                 yield f"• Name: {name}\n"
                 yield f"• Date: {date_str}  ·  {time_str}  ·  {duration} min\n"
@@ -520,6 +522,8 @@ def ai_response(prompt, history=None):
                 yield "__REDIRECT__new_class"
 
         except Exception:
+            import traceback
+            traceback.print_exc()
             yield "Sorry, something went wrong. Please try again."
         return
 
@@ -541,7 +545,7 @@ def stream_prompt():
         return Response(stream_with_context(empty_gen()), mimetype="text/event-stream")
 
     user_input = prompt.strip().lower()
-    if "signup" in user_input:
+    if "signup" in user_input or "sign up" in user_input:
         redirect_after_stream = "center=classes&new=1"
     else:
         redirect_after_stream = None
