@@ -251,7 +251,6 @@ TOOLS = [
             },
             "required": ["subject", "body"],
         },
-        "cache_control": {"type": "ephemeral"},
     },
     {
         "name": "create_class",
@@ -292,6 +291,7 @@ TOOLS = [
             },
             "required": ["name"],
         },
+        "cache_control": {"type": "ephemeral"},
     },
 ]
 
@@ -424,45 +424,55 @@ def ai_response(prompt, history=None):
                     yield text
                 final = stream.get_final_message()
 
-            tool_block = next(
-                (b for b in final.content if b.type == "tool_use"),
+            tool_uses = [b for b in final.content if b.type == "tool_use"]
+            # Email / class are page-redirecting actions — only one can win per
+            # turn. If Claude requested either, prefer it over any chart calls.
+            action_block = next(
+                (b for b in tool_uses if b.name in ("compose_email", "create_class")),
                 None,
             )
+            chart_blocks = [b for b in tool_uses if b.name == "generate_chart"]
 
-            if tool_block and tool_block.name == "generate_chart":
-                inp = tool_block.input
-                data = _chart_data(inp["data_source"])
-                if data is None:
-                    yield "\nData for that metric isn't available yet."
-                    return
+            if not action_block and chart_blocks:
+                # Resolve every chart's data up front so we can feed back one
+                # tool_result per tool_use (the API requires a 1:1 mapping).
+                chart_specs = []  # (tool_use, input, data-or-None)
+                for tb in chart_blocks:
+                    chart_specs.append((tb, tb.input, _chart_data(tb.input["data_source"])))
 
-                # Build the assistant turn to send back (required by the API).
-                # Stop after the first tool_use — every tool_use needs a matching
-                # tool_result in the next message, and we only build one below.
+                # Replay assistant turn with text + every chart tool_use we have results for.
                 assistant_content = []
+                chart_ids = {tb.id for tb in chart_blocks}
                 for block in final.content:
                     if block.type == "text":
                         assistant_content.append({"type": "text", "text": block.text})
-                    elif block.type == "tool_use":
+                    elif block.type == "tool_use" and block.id in chart_ids:
                         assistant_content.append({
                             "type": "tool_use",
                             "id": block.id,
                             "name": block.name,
                             "input": block.input,
                         })
-                        break
 
-                # Phase 2: return real data so Claude writes an informed summary
+                tool_results = []
+                for tb, inp, data in chart_specs:
+                    if data is None:
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": tb.id,
+                            "content": "Data for that metric isn't available.",
+                            "is_error": True,
+                        })
+                    else:
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": tb.id,
+                            "content": json.dumps(_data_for_claude(inp["data_source"], data)),
+                        })
+
                 follow_up = messages + [
                     {"role": "assistant", "content": assistant_content},
-                    {
-                        "role": "user",
-                        "content": [{
-                            "type": "tool_result",
-                            "tool_use_id": tool_block.id,
-                            "content": json.dumps(_data_for_claude(inp["data_source"], data)),
-                        }],
-                    },
+                    {"role": "user", "content": tool_results},
                 ]
                 with anthropic_client.messages.stream(
                     model="claude-sonnet-4-6",
@@ -473,20 +483,21 @@ def ai_response(prompt, history=None):
                     for text in stream2.text_stream:
                         yield text
 
-                # Yield the chart after the summary
-                yield "__CHART__" + json.dumps(build_chart_spec(inp["chart_type"], data))
+                for tb, inp, data in chart_specs:
+                    if data is not None:
+                        yield "__CHART__" + json.dumps(build_chart_spec(inp["chart_type"], data))
 
-            elif tool_block and tool_block.name == "compose_email":
-                inp = tool_block.input
+            elif action_block and action_block.name == "compose_email":
+                inp = action_block.input
                 subject = inp.get("subject", "")
                 body = inp.get("body", "")
                 yield "Draft ready — opening the email editor now.\n"
                 yield "__EMAIL__" + json.dumps({"subject": subject, "body": body})
                 yield "__REDIRECT__email"
 
-            elif tool_block and tool_block.name == "create_class":
+            elif action_block and action_block.name == "create_class":
                 new_class_signups_count = 0
-                inp = tool_block.input
+                inp = action_block.input
                 name = inp.get("name", "New Class")
                 _raw_date = inp.get("date", "")
                 # Resolve relative words or missing values to a real date string
@@ -521,10 +532,10 @@ def ai_response(prompt, history=None):
                 })
                 yield "__REDIRECT__new_class"
 
-        except Exception:
+        except Exception as e:
             import traceback
             traceback.print_exc()
-            yield "Sorry, something went wrong. Please try again."
+            yield f"Sorry, something went wrong: {type(e).__name__}: {e}"
         return
 
 
