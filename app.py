@@ -73,6 +73,10 @@ new_class_signups_count = 0
 # so "sign up Mia for that class" refers to whatever the user just created.
 last_created_class = None
 
+
+def _is_mia_signup(text: str) -> bool:
+    return ("sign up" in text or "signup" in text) and "mia watts" in text
+
 CENTER_TEMPLATES = {
     "dashboard": "center/dashboard.html",
     "email": "center/email.html",
@@ -351,7 +355,7 @@ def ai_response(prompt, history=None):
     user_input = prompt.strip().lower()
     global new_class_signups_count, last_created_class
 
-    is_signup = "signup" in user_input or "sign up" in user_input
+    is_signup = _is_mia_signup(user_input)
 
     # Track state changes that are reflected in the UI
     if is_signup:
@@ -556,7 +560,7 @@ def stream_prompt():
         return Response(stream_with_context(empty_gen()), mimetype="text/event-stream")
 
     user_input = prompt.strip().lower()
-    if "signup" in user_input or "sign up" in user_input:
+    if _is_mia_signup(user_input):
         redirect_after_stream = "center=classes&new=1"
     else:
         redirect_after_stream = None
