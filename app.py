@@ -328,9 +328,14 @@ def build_chart_spec(chart_type, data, options=None):
             "hole": 0.6,
             "marker": {
                 "colors": [
-                    "rgba(4,152,224,0.9)",
-                    "rgba(4,152,224,0.5)",
-                    "rgba(4,152,224,0.2)",
+                    "#0498e0",                # Luminous Blue
+                    "rgba(16,185,129,0.95)",  # Vibrant Emerald
+                    "rgba(139,92,246,0.95)",  # Neon Purple
+                    "rgba(254,89,21,0.95)",   # Sunset Coral
+                    "rgba(245,158,11,0.95)",  # Golden Amber
+                    "rgba(236,72,153,0.95)",  # Hot Rose
+                    "rgba(6,182,212,0.95)",   # Electric Cyan
+                    "rgba(142,36,170,0.95)",  # Deep Magenta
                 ]
             },
             "textinfo": "none",
