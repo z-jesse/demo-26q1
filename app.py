@@ -3,6 +3,7 @@ import os
 import random
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 
 import anthropic
@@ -201,8 +202,7 @@ REPORT_SYSTEM_PROMPT = (
     "   and restated numbers; assume the reader can see the chart.\n"
     "4. SQL Queries: SQLite-compatible queries against the vw_* views. Use `date('now', '-N days')` "
     "   for relative date arithmetic."
-    + "\n\n=== Studio Data Snapshot ===\n" + studio_summary()
-    + ("\n\n=== Vygor Platform Documentation ===\n" + _DOCS if _DOCS else "")
+    + _ANALYTICS_SYSTEM_SUFFIX
 )
 
 
@@ -1234,7 +1234,7 @@ def generate_report(report_id):
         msg = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=8192,
-            system=[{"type": "text", "text": REPORT_SYSTEM_PROMPT + _ANALYTICS_SYSTEM_SUFFIX, "cache_control": {"type": "ephemeral"}}],
+            system=[{"type": "text", "text": REPORT_SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
             tools=[REPORT_TOOL],
             tool_choice={"type": "tool", "name": "build_report"},
             messages=[{"role": "user", "content": prompt}],
@@ -1248,8 +1248,10 @@ def generate_report(report_id):
             return jsonify({"error": "No report generated"}), 500
 
         sections = tool_block.input.get("sections", [])
-        for sec in sections:
-            _resolve_section(sec)
+        resolvable = [s for s in sections if s.get("type") in ("chart", "table")]
+        if resolvable:
+            with ThreadPoolExecutor(max_workers=min(5, len(resolvable))) as pool:
+                list(pool.map(_resolve_section, resolvable))
 
         today_str = (
             date.today().strftime('%b ')
