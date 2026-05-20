@@ -1,0 +1,411 @@
+{
+  "generated_at": "May 20, 2026",
+  "sections": [
+    {
+      "type": "chart",
+      "title": "Revenue by Source",
+      "content": "Memberships dominate revenue generation, which reflects the studio's subscription-first model \u2014 this is a healthy sign of recurring, predictable income. However, a heavy reliance on a single source means any membership churn will have an outsized impact on the bottom line. Diversifying revenue through class pack bookings and retail products can create a more resilient mix. Watch the booking and product slices closely; growth there signals upsell effectiveness.",
+      "chart_type": "donut",
+      "sql": "SELECT purchasable_type AS source, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY purchasable_type ORDER BY revenue DESC",
+      "label_column": "source",
+      "value_column": "revenue",
+      "spec": {
+        "data": [
+          {
+            "values": [
+              39882.0,
+              9020.0,
+              1308.0
+            ],
+            "labels": [
+              "booking",
+              "membership",
+              "product"
+            ],
+            "type": "pie",
+            "hole": 0.6,
+            "marker": {
+              "colors": [
+                "rgba(4,152,224,0.9)",
+                "rgba(4,152,224,0.5)",
+                "rgba(4,152,224,0.2)"
+              ]
+            },
+            "textinfo": "none"
+          }
+        ],
+        "layout": {
+          "paper_bgcolor": "rgba(0,0,0,0)",
+          "plot_bgcolor": "rgba(0,0,0,0)",
+          "font": {
+            "family": "Figtree"
+          },
+          "showlegend": false,
+          "autosize": true,
+          "margin": {
+            "t": 8,
+            "r": 8,
+            "b": 8,
+            "l": 8
+          }
+        }
+      }
+    },
+    {
+      "type": "chart",
+      "title": "Daily Revenue Trends",
+      "content": "Daily revenue over this period reveals whether the studio has consistent week-over-week billing cycles or is dependent on spikes from promotions and new sign-ups. Flat or declining days mid-period can indicate a gap between renewal billing dates, while sharp peaks often correspond to campaign launches or class pack purchases. Smoothing out these troughs \u2014 through auto-renewal reminders or mid-month promotions \u2014 can meaningfully lift average daily revenue. Use this view to time any future promotional pushes to the historically weaker days.",
+      "chart_type": "line",
+      "sql": "SELECT strftime('%Y-%m-%d', created_at) AS day, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY day ORDER BY day",
+      "x_column": "day",
+      "y_column": "revenue",
+      "spec": {
+        "data": [
+          {
+            "x": [
+              "2026-04-20",
+              "2026-04-21",
+              "2026-04-22",
+              "2026-04-23",
+              "2026-04-24",
+              "2026-04-25",
+              "2026-04-26",
+              "2026-04-27",
+              "2026-04-28",
+              "2026-04-29",
+              "2026-04-30",
+              "2026-05-01",
+              "2026-05-02",
+              "2026-05-03",
+              "2026-05-04",
+              "2026-05-05",
+              "2026-05-06",
+              "2026-05-07",
+              "2026-05-08",
+              "2026-05-09",
+              "2026-05-10",
+              "2026-05-11",
+              "2026-05-12",
+              "2026-05-13",
+              "2026-05-14",
+              "2026-05-15",
+              "2026-05-16",
+              "2026-05-17",
+              "2026-05-18",
+              "2026-05-19",
+              "2026-05-20"
+            ],
+            "y": [
+              2184.0,
+              1663.0,
+              2177.0,
+              1916.0,
+              2435.0,
+              2226.0,
+              1580.0,
+              1478.0,
+              1417.0,
+              1680.0,
+              1208.0,
+              927.0,
+              844.0,
+              1293.0,
+              2311.0,
+              1691.0,
+              1655.0,
+              932.0,
+              3552.0,
+              1963.0,
+              1941.0,
+              1312.0,
+              1622.0,
+              1884.0,
+              891.0,
+              2111.0,
+              1823.0,
+              951.0,
+              1089.0,
+              1284.0,
+              170.0
+            ],
+            "type": "scatter",
+            "mode": "lines",
+            "fill": "tozeroy",
+            "fillcolor": "rgba(4,152,224,0.4)",
+            "fillgradient": {
+              "type": "vertical",
+              "colorscale": [
+                [
+                  0,
+                  "rgba(4,152,224,0)"
+                ],
+                [
+                  1,
+                  "rgba(4,152,224,0.3)"
+                ]
+              ]
+            },
+            "line": {
+              "color": "#0498e0",
+              "width": 2
+            }
+          }
+        ],
+        "layout": {
+          "paper_bgcolor": "rgba(0,0,0,0)",
+          "plot_bgcolor": "rgba(0,0,0,0)",
+          "font": {
+            "family": "Figtree"
+          },
+          "showlegend": false,
+          "autosize": true,
+          "margin": {
+            "t": 0,
+            "r": 8,
+            "b": 24,
+            "l": 40
+          },
+          "xaxis": {
+            "tickfont": {
+              "color": "rgba(122,122,122,1)",
+              "size": 12,
+              "family": "Figtree"
+            },
+            "showgrid": false,
+            "zeroline": false
+          },
+          "yaxis": {
+            "tickfont": {
+              "color": "rgba(122,122,122,1)",
+              "size": 12,
+              "family": "Figtree"
+            },
+            "showgrid": false,
+            "zeroline": false,
+            "gridcolor": "rgba(61,61,61,1)"
+          }
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Revenue Breakdown by Plan / Item",
+      "content": "Breaking revenue down by named item (membership plan, class, or product) identifies which specific offerings are carrying the most financial weight. High-volume, lower-priced items (like Intro Offers) can mask whether premium plans are actually converting. If Founding Memberships and Unlimited plans are underrepresented here relative to their member counts, there may be an upgrade funnel worth investing in. This table also highlights any product or booking revenue streams that could warrant dedicated promotion.",
+      "sql": "SELECT item_name, purchasable_type AS type, COUNT(*) AS transactions, ROUND(SUM(amount_dollars), 2) AS total_revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' AND item_name IS NOT NULL AND item_name != '' GROUP BY item_name, purchasable_type ORDER BY total_revenue DESC",
+      "columns": [
+        "Item",
+        "Type",
+        "Transactions",
+        "Total Revenue ($)"
+      ],
+      "rows": [
+        [
+          "Panther Power Sculpt",
+          "booking",
+          276,
+          9384.0
+        ],
+        [
+          "Yin in Nature",
+          "booking",
+          220,
+          7480.0
+        ],
+        [
+          "Panther Power Flow",
+          "booking",
+          213,
+          7242.0
+        ],
+        [
+          "Wild Thing Flow",
+          "booking",
+          141,
+          4794.0
+        ],
+        [
+          "Panther Pilates en espa\u00f1ol",
+          "booking",
+          135,
+          4590.0
+        ],
+        [
+          "Intro Offer",
+          "membership",
+          60,
+          4500.0
+        ],
+        [
+          "ALO + Wild Thing: Sculpted Strength",
+          "booking",
+          50,
+          3000.0
+        ],
+        [
+          "10 Class Pack",
+          "membership",
+          6,
+          1740.0
+        ],
+        [
+          "Unlimited / Month",
+          "membership",
+          7,
+          1680.0
+        ],
+        [
+          "4 Classes / Month",
+          "membership",
+          10,
+          1100.0
+        ],
+        [
+          "ALO + Wild Thing: Elemental Power",
+          "booking",
+          17,
+          1020.0
+        ],
+        [
+          "Primal Stretch",
+          "booking",
+          28,
+          952.0
+        ],
+        [
+          "Primal Breath",
+          "booking",
+          17,
+          578.0
+        ],
+        [
+          "Primal Moves",
+          "booking",
+          13,
+          442.0
+        ],
+        [
+          "Vygor Premium Yoga Mat",
+          "product",
+          5,
+          440.0
+        ],
+        [
+          "gentle\u2014noise\u2122",
+          "booking",
+          8,
+          400.0
+        ],
+        [
+          "Reusable Water Bottle",
+          "product",
+          10,
+          280.0
+        ],
+        [
+          "Vygor Hoodie",
+          "product",
+          4,
+          272.0
+        ],
+        [
+          "Cork Yoga Block (pair)",
+          "product",
+          3,
+          96.0
+        ],
+        [
+          "Wild Thing Tank",
+          "product",
+          2,
+          84.0
+        ],
+        [
+          "Sweat Towel",
+          "product",
+          4,
+          72.0
+        ],
+        [
+          "Vygor Branded Tote",
+          "product",
+          2,
+          48.0
+        ],
+        [
+          "Recovery Tea Blend",
+          "product",
+          1,
+          16.0
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top 10 Customers by Spend",
+      "content": "A small segment of high-value customers typically drives a disproportionate share of revenue \u2014 identifying them enables targeted retention efforts like loyalty perks or early access to new offerings. Customers appearing here with single bookings (rather than memberships) represent unconverted high-intent leads who may respond to a direct upgrade offer. Monitoring whether these top spenders hold active memberships is a quick litmus test for retention health. Any drop-off in repeat spend from this cohort should trigger an immediate re-engagement campaign.",
+      "sql": "SELECT customer_name, ROUND(SUM(amount_dollars), 2) AS total_spent, COUNT(*) AS transactions FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY customer_id, customer_name ORDER BY total_spent DESC LIMIT 10",
+      "columns": [
+        "Customer",
+        "Total Spent ($)",
+        "Transactions"
+      ],
+      "rows": [
+        [
+          "Joan Canny",
+          682.0,
+          14
+        ],
+        [
+          "Samantha Camara",
+          682.0,
+          14
+        ],
+        [
+          "Lilia Bush",
+          614.0,
+          12
+        ],
+        [
+          "Mario Landera",
+          612.0,
+          18
+        ],
+        [
+          "Alexandria Colindres",
+          510.0,
+          15
+        ],
+        [
+          "Yvonne Alvarez",
+          476.0,
+          14
+        ],
+        [
+          "Claudia Argueta",
+          460.0,
+          6
+        ],
+        [
+          "Tessa Brankovic",
+          444.0,
+          7
+        ],
+        [
+          "Katherine Filippetti",
+          442.0,
+          13
+        ],
+        [
+          "Juan Rubio",
+          442.0,
+          13
+        ]
+      ]
+    },
+    {
+      "type": "text",
+      "title": "Recommendations",
+      "content": "1. Reduce single-source dependency: If memberships account for the vast majority of revenue, actively promote 10 Class Packs and retail products at checkout and post-class to diversify the income mix.\n\n2. Convert Intro Offer members: With 550 members on an Intro Offer plan, the largest near-term revenue opportunity is converting these members to paid recurring plans (Unlimited, 4x/Month, Founding). A timed email sequence \u2014 sent at days 7, 14, and 21 of the intro period \u2014 typically drives the highest conversion rates.\n\n3. Smooth daily revenue volatility: Identify the low-revenue days in the daily trend and schedule promotional emails or flash sales (e.g., class pack discounts) to coincide with those windows.\n\n4. Re-engage top spenders: Reach out personally to your top 10 customers with a VIP acknowledgment or exclusive offer \u2014 retaining one high-LTV customer is worth far more than acquiring several low-spend ones.\n\n5. Track refund exposure: Ensure the 'refunded' payment status is monitored monthly; a rising refund rate against succeeded revenue is an early warning sign of dissatisfaction or billing errors."
+    }
+  ]
+}

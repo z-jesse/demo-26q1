@@ -31,6 +31,63 @@
     border-left: 3px solid rgba(61,61,61,1); padding-left: 12px;
     color: rgba(180,180,180,1); margin: 0 0 12px 0;
   }
+  
+  /* ── Skeleton Loading ── */
+  @keyframes rptPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.3; }
+  }
+  .rpt-skeleton {
+    animation: rptPulse 1.6s ease-in-out infinite;
+  }
+  .rpt-skeleton-container {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .rpt-skeleton-header {
+    height: 16px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .rpt-skeleton-line {
+    height: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .rpt-skeleton-line:last-child {
+    margin-bottom: 0;
+  }
+  .rpt-skeleton-chart {
+    height: 200px;
+    background: rgba(255, 255, 255, 0.025);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rpt-skeleton-table-row {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 0;
+    align-items: center;
+  }
+  .rpt-skeleton-table-row:last-child {
+    border-bottom: none;
+  }
+  .rpt-skeleton-table-cell {
+    height: 11px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    margin-right: 16px;
+  }
+  .rpt-skeleton-table-cell:last-child {
+    margin-right: 0;
+  }
 </style>
 <div class="classes-view" data-colors-mode="dark">
 
@@ -283,6 +340,59 @@
   }
 
   // ── Detail ──────────────────────────────────────────────────
+  function rptGetSkeletonHTML(reportName) {
+    var title = reportName || "Studio Performance Report";
+    return '<div class="rpt-skeleton">'
+      + '  <div style="margin-bottom: 24px;">'
+      + '    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: rgba(122,122,122,1); margin-bottom: 4px;">Report Preview</div>'
+      + '    <div class="rpt-skeleton-header" style="width: 250px; height: 18px; margin-bottom: 0;"></div>'
+      + '  </div>'
+      
+      // Executive Summary
+      + '  <div class="rpt-skeleton-container">'
+      + '    <div class="rpt-skeleton-header" style="width: 140px;"></div>'
+      + '    <div class="rpt-skeleton-line" style="width: 100%;"></div>'
+      + '    <div class="rpt-skeleton-line" style="width: 95%;"></div>'
+      + '    <div class="rpt-skeleton-line" style="width: 97%;"></div>'
+      + '    <div class="rpt-skeleton-line" style="width: 85%;"></div>'
+      + '  </div>'
+      
+      // Chart
+      + '  <div class="rpt-skeleton-container">'
+      + '    <div class="rpt-skeleton-header" style="width: 180px;"></div>'
+      + '    <div class="rpt-skeleton-chart">'
+      + '      <div style="display: flex; gap: 18px; align-items: flex-end; height: 130px; width: 85%; justify-content: space-around;">'
+      + '        <div style="width: 36px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0;"></div>'
+      + '        <div style="width: 36px; height: 85px; background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0;"></div>'
+      + '        <div style="width: 36px; height: 110px; background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0;"></div>'
+      + '        <div style="width: 36px; height: 70px; background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0;"></div>'
+      + '        <div style="width: 36px; height: 95px; background: rgba(255,255,255,0.05); border-radius: 4px 4px 0 0;"></div>'
+      + '      </div>'
+      + '    </div>'
+      + '  </div>'
+      
+      // Table
+      + '  <div class="rpt-skeleton-container">'
+      + '    <div class="rpt-skeleton-header" style="width: 120px;"></div>'
+      + '    <div class="rpt-skeleton-table-row" style="border-bottom: 2px solid rgba(255,255,255,0.08);">'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 30%; background: rgba(255,255,255,0.12);"></div>'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 40%; background: rgba(255,255,255,0.12);"></div>'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 30%; background: rgba(255,255,255,0.12);"></div>'
+      + '    </div>'
+      + '    <div class="rpt-skeleton-table-row">'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 25%;"></div>'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 45%;"></div>'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 30%;"></div>'
+      + '    </div>'
+      + '    <div class="rpt-skeleton-table-row">'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 35%;"></div>'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 35%;"></div>'
+      + '      <div class="rpt-skeleton-table-cell" style="width: 30%;"></div>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+  }
+
   function populateDetailPanel(r) {
     _detailReport = r;
     document.getElementById("rpt-detail-title").textContent = r.name;
@@ -295,7 +405,7 @@
 
   function loadDetailContent(id) {
     var area = document.getElementById("rpt-content-area");
-    area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">Loading…</div>';
+    area.innerHTML = rptGetSkeletonHTML(_detailReport ? _detailReport.name : "");
     fetch("/api/reports/" + id + "/content")
       .then(function (r) { return r.json(); })
       .then(function (content) {
@@ -372,7 +482,7 @@
       .then(function (saved) {
         _detailReport = saved;
         document.getElementById("rpt-detail-title").textContent = saved.name;
-        area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">Generating report…</div>';
+        area.innerHTML = rptGetSkeletonHTML(saved.name);
         return fetch("/api/reports/" + saved.id + "/generate", { method: "POST" });
       })
       .then(function (r) { if (!r.ok) throw new Error("Server error"); return r.json(); })
@@ -498,11 +608,11 @@
     var nameEl = document.getElementById("rpt-f-name");
     
     var prompts = {
-      financial: "Give me a detailed financial report showing total realized revenue, a breakdown of revenue by source (membership, product, booking) as a donut chart, and a line chart of daily revenue trends.",
+      financial: "Give me a detailed financial report showing total realized revenue, a breakdown of revenue by source (membership, product, booking), and daily revenue trends.",
       membership: "Give me a membership report showing total memberships, a distribution of memberships by plan type, and a table of customers with active plans.",
-      classes: "Give me a class attendance and visit report. Show a bar chart of class attendance (visits) grouped by class name for confirmed check-ins, and a list of the most popular classes.",
-      staff: "Give me a staff performance report showing the total classes taught by each instructor (confirmed check-ins), and a table of revenue generated by instructor bookings.",
-      multi: "Give me a report on my revenue, my visit count, and my membership count. Include a narrative summary first, a line chart of daily revenue, a bar chart of daily class attendance visits, and a donut chart of membership plan distribution."
+      classes: "Give me a class attendance and visit report. Show class attendance (visits) grouped by class name for confirmed check-ins, and a list of the most popular classes.",
+      staff: "Give me a staff performance report showing the total classes taught by each instructor (confirmed check-ins), and revenue generated by instructor bookings.",
+      multi: "Give me a report on my revenue, my visit count, and my membership count. Include a narrative summary first, daily revenue, daily class attendance visits, and membership plan distribution."
     };
     
     var names = {
@@ -545,7 +655,7 @@
         show("rpt-panel-detail");
         // Auto-generate on create
         var area = document.getElementById("rpt-content-area");
-        area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">Generating report…</div>';
+        area.innerHTML = rptGetSkeletonHTML(saved.name);
         return fetch("/api/reports/" + saved.id + "/generate", { method: "POST" });
       })
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
