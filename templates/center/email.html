@@ -1,101 +1,99 @@
-<div class="campaign-email" role="region" aria-label="Create a New Campaign Email">
-  <header class="campaign-email__header">
-    <h2 class="text-wrapper-7">Create a New Campaign Email</h2>
+<div class="flex flex-col gap-[18px] w-full min-h-full font-['Figtree',Helvetica,sans-serif] text-[var(--colors-text-strong)]" role="region" aria-label="Create a New Campaign Email">
+  <header class="panel-header">
+    <h2 class="panel-title">Create a New Campaign Email</h2>
   </header>
 
-  <section class="campaign-email__recipients" aria-labelledby="send-to-heading">
-    <p id="send-to-heading" class="campaign-email__label">Send to (1)</p>
+  <section class="flex flex-col gap-4 w-full" aria-labelledby="send-to-heading">
+    <p id="send-to-heading" class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Send to (1)</p>
 
-    <div class="campaign-email__chips" aria-label="Selected recipients and segments">
-      <span class="campaign-chip">
-        <span class="campaign-chip__avatar" aria-hidden="true">
-          <img src="/static/img/woman-avatar.jpg" alt="" />
+    <div class="flex flex-wrap gap-2 mt-2" aria-label="Selected recipients and segments">
+      <span class="flex items-center gap-2 px-3 py-1.5 bg-[var(--colors-bg-dugout)] border border-[var(--colors-border-strong)] rounded-full text-sm text-[var(--colors-text-strong)]">
+        <span class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0" aria-hidden="true">
+          <img src="/static/img/woman-avatar.jpg" alt="" class="w-full h-full object-cover" />
         </span>
-        <span class="campaign-chip__text">Mia Watts (miawatts@gmail.com)</span>
+        <span>Mia Watts (miawatts@gmail.com)</span>
       </span>
     </div>
 
-    <label class="campaign-checkbox">
-      <input type="checkbox" name="send_all" />
+    <label class="flex items-center gap-2 mt-4 cursor-pointer text-sm text-[var(--colors-text-moderate)]">
+      <input type="checkbox" name="send_all" class="w-4 h-4 rounded border-[var(--colors-border-strong)] text-blue-600 focus:ring-blue-500 bg-[var(--colors-bg-moderate)]" />
       <span>Send to all customers</span>
     </label>
   </section>
 
-  <hr class="campaign-divider" />
+  <hr class="border-[var(--colors-border-strong)] w-full" />
 
-  <section class="campaign-email__compose" aria-labelledby="subject-heading">
-    <h3 id="subject-heading" class="campaign-email__subject">ALO + Wild Thing: Reset and Renewal</h3>
+  <section class="flex flex-col gap-3 w-full" aria-labelledby="subject-heading">
+    <h3 id="subject-heading" class="typography-h4 text-[var(--colors-text-strong)] font-bold mb-2">ALO + Wild Thing: Reset and Renewal</h3>
 
-    <div class="campaign-email__toolbar-row">
-      <div class="campaign-toolbar" role="toolbar" aria-label="Email editor toolbar">
-        <button type="button" class="campaign-toolbar__btn campaign-toolbar__btn--dropdown" aria-label="Font family">
-          Figtree
-          <span class="campaign-toolbar__caret" aria-hidden="true">▾</span>
+    <div class="flex items-center justify-between w-full mb-1">
+      <div class="flex items-center gap-1 bg-[var(--colors-bg-dugout)] rounded-lg p-1 border border-[var(--colors-border-strong)]" role="toolbar" aria-label="Email editor toolbar">
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors flex items-center gap-1" aria-label="Font family">
+          Figtree <span aria-hidden="true">▾</span>
         </button>
-        <button type="button" class="campaign-toolbar__btn campaign-toolbar__btn--dropdown" aria-label="Text style">
-          Tt
-          <span class="campaign-toolbar__caret" aria-hidden="true">▾</span>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors flex items-center gap-1" aria-label="Text style">
+          Tt <span aria-hidden="true">▾</span>
         </button>
-        <span class="campaign-toolbar__sep" aria-hidden="true"></span>
-        <button type="button" class="campaign-toolbar__btn" aria-label="Bold"><strong>B</strong></button>
-        <button type="button" class="campaign-toolbar__btn" aria-label="Italic"><em>I</em></button>
-        <button type="button" class="campaign-toolbar__btn" aria-label="Underline"><span class="campaign-u">U</span></button>
-        <button type="button" class="campaign-toolbar__btn" aria-label="Strikethrough"><span class="campaign-s">S</span></button>
-        <span class="campaign-toolbar__sep" aria-hidden="true"></span>
-        <button type="button" class="campaign-toolbar__btn" aria-label="Insert image">🖼</button>
-        <button type="button" class="campaign-toolbar__btn" aria-label="Code view">&lt;/&gt;</button>
+        <div class="w-px h-4 bg-[var(--colors-border-strong)] mx-1" aria-hidden="true"></div>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors" aria-label="Bold"><strong>B</strong></button>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors" aria-label="Italic"><em>I</em></button>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors underline" aria-label="Underline">U</button>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors line-through" aria-label="Strikethrough">S</button>
+        <div class="w-px h-4 bg-[var(--colors-border-strong)] mx-1" aria-hidden="true"></div>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors" aria-label="Insert image">🖼</button>
+        <button type="button" class="px-2 py-1 text-sm text-[var(--colors-text-moderate)] hover:bg-[var(--colors-bg-moderate)] rounded transition-colors" aria-label="Code view">&lt;/&gt;</button>
       </div>
 
-      <button type="button" class="campaign-btn campaign-btn--ghost">
-        <span aria-hidden="true">+</span>
-        Apply Template
+      <button type="button" class="text-sm font-medium text-blue-500 hover:text-blue-400 flex items-center gap-1 transition-colors">
+        <span aria-hidden="true">+</span> Apply Template
       </button>
     </div>
 
-    <div class="campaign-editor-wrapper">
-    <div class="campaign-editor" role="textbox" aria-label="Email body" contenteditable="true" spellcheck="false">
-      <p><strong>Hello!</strong></p>
-      <p>
-        Join us for ALO + Wild Thing: Reset and Renewal, an event dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
-        sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
-        or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
-      </p>
-      <p>
-        We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
-        and intention. We can't wait to flow, breathe, and celebrate with you at ALO + Wild Thing: Reset and Renewal.
-      </p>
-      <p>Warmly,<br />Vygor Test</p>
-    </div>
+    <div class="w-full border border-[var(--colors-border-strong)] rounded-xl bg-[var(--colors-bg-moderate)] overflow-hidden">
+      <div id="campaign-editor" class="p-4 min-h-[200px] outline-none text-[var(--colors-text-strong)] typography-body-lg flex flex-col gap-4" role="textbox" aria-label="Email body" contenteditable="true" spellcheck="false">
+        <p><strong>Hello!</strong></p>
+        <p>
+          Join us for ALO + Wild Thing: Reset and Renewal, an event dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
+          sessions, guided meditation, live music, and workshops led by inspiring instructors from around the region. Whether you're new to yoga
+          or a long-time practitioner, this event is designed to help you recharge, connect, and celebrate the joy of summer together.
+        </p>
+        <p>
+          We'd love to have you with us. Save your spot today and be part of an uplifting experience that brings people together through wellness
+          and intention. We can't wait to flow, breathe, and celebrate with you at ALO + Wild Thing: Reset and Renewal.
+        </p>
+        <p>Warmly,<br />Vygor Test</p>
+      </div>
     </div>
   </section>
 
-  <hr class="campaign-divider" />
+  <hr class="border-[var(--colors-border-strong)] w-full" />
 
-  <section class="campaign-email__test" aria-labelledby="test-heading">
-    <h3 id="test-heading" class="campaign-email__section-title">Personalization Preview</h3>
+  <section class="flex flex-col gap-3 w-full" aria-labelledby="test-heading">
+    <h3 id="test-heading" class="typography-body-lg font-bold text-[var(--colors-text-strong)] mb-1">Personalization Preview</h3>
 
-    <div class="campaign-input-wrapper">
+    <div class="campaign-input-wrapper relative w-full max-w-md mb-1">
+      <img src="/static/img/magnifying-glass-search.svg" class="absolute left-3 top-[12px] w-4 h-4 opacity-60" aria-hidden="true" alt="" />
       <input
         id="test-customer"
-        class="campaign-input"
+        class="form-input w-full !pl-10"
         type="search"
         placeholder="Search for Name, Phone, or Email"
         autocomplete="off"
       />
-      <div id="test-customer-dropdown" class="campaign-input-dropdown" role="listbox" aria-label="Customer suggestions" style="display: none;">
-        <button type="button" class="campaign-input-dropdown__item" role="option" data-value="Mia Watts (miawatts@gmail.com)">
-          <span class="campaign-input-dropdown__avatar" aria-hidden="true">
-            <img src="/static/img/woman-avatar.jpg" alt="" />
+      <div id="test-customer-dropdown" class="absolute z-10 w-full mt-1 bg-[var(--colors-bg-moderate)] border border-[var(--colors-border-strong)] rounded-xl shadow-lg overflow-hidden" role="listbox" aria-label="Customer suggestions" style="display: none;">
+        <button type="button" class="js-customer-item flex items-center gap-3 w-full p-3 text-left hover:bg-[var(--colors-bg-dugout)] transition-colors" role="option" data-value="Mia Watts (miawatts@gmail.com)">
+          <span class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0" aria-hidden="true">
+            <img src="/static/img/woman-avatar.jpg" alt="" class="w-full h-full object-cover" />
           </span>
-          <div class="campaign-input-dropdown__info">
-            <span class="campaign-input-dropdown__name">Mia Watts</span>
-            <span class="campaign-input-dropdown__email">miawatts@gmail.com</span>
+          <div class="flex flex-col">
+            <span class="js-customer-name text-sm font-medium text-[var(--colors-text-strong)]">Mia Watts</span>
+            <span class="js-customer-email text-xs text-[var(--colors-text-moderate)]">miawatts@gmail.com</span>
           </div>
         </button>
       </div>
     </div>
 
-    <div class="campaign-preview" aria-label="Email preview">
+    <div id="campaign-preview" class="mt-1 p-6 bg-[var(--colors-bg-dugout)] border border-[var(--colors-border-strong)] rounded-lg text-[var(--colors-text-strong)] min-h-[200px] typography-body-lg flex flex-col gap-4 w-full" aria-label="Email preview">
       <p><strong>Hello!</strong></p>
       <p>
         Join us for ALO + Wild Thing: Reset and Renewal, an event dedicated to movement, mindfulness, and community. Enjoy energizing outdoor yoga
@@ -110,15 +108,15 @@
     </div>
   </section>
 
-  <footer class="campaign-email__actions" aria-label="Campaign actions">
-    <button type="button" class="campaign-btn campaign-btn--pill">
+  <footer class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-[var(--colors-border-strong)] sticky bottom-0 bg-[var(--colors-bg-moderate)]" aria-label="Campaign actions">
+    <button type="button" class="panel-btn panel-btn--outline rounded-full px-6">
       Send Now
     </button>
-    <button type="button" class="campaign-btn campaign-btn--pill">
+    <button type="button" class="panel-btn panel-btn--outline rounded-full px-6">
       Schedule Send
     </button>
-    <button type="button" class="campaign-btn campaign-btn--primary">Save Draft</button>
-    <button type="button" class="campaign-btn campaign-btn--danger">Discard</button>
+    <button type="button" class="panel-btn rounded-full px-6">Save Draft</button>
+    <button type="button" class="panel-btn panel-btn--outline border-red-900/30 text-red-500 hover:bg-red-900/20 rounded-full px-6">Discard</button>
   </footer>
 </div>
 
@@ -131,7 +129,7 @@
       var draft = JSON.parse(raw);
       sessionStorage.removeItem("vygor-draft-email");
 
-      var subjectEl = document.querySelector('.campaign-email__subject');
+      var subjectEl = document.getElementById('subject-heading');
       if (subjectEl && draft.subject) subjectEl.textContent = draft.subject;
 
       function bodyToHtml(text) {
@@ -140,10 +138,10 @@
         }).join("");
       }
 
-      var editor = document.querySelector('.campaign-editor');
+      var editor = document.getElementById('campaign-editor');
       if (editor && draft.body) editor.innerHTML = bodyToHtml(draft.body);
 
-      var preview = document.querySelector('.campaign-preview');
+      var preview = document.getElementById('campaign-preview');
       if (preview && draft.body) preview.innerHTML = bodyToHtml(draft.body);
     } catch (_) {}
   })();
@@ -155,7 +153,7 @@
     const input = document.getElementById('test-customer');
     const dropdown = document.getElementById('test-customer-dropdown');
     const wrapper = document.querySelector('.campaign-input-wrapper');
-    const preview = document.querySelector('.campaign-preview');
+    const preview = document.getElementById('campaign-preview');
     
     if (!input || !dropdown || !wrapper || !preview) return;
     
@@ -173,8 +171,8 @@
     async function updatePreview(customerName, customerEmail) {
       preview.innerHTML = '<p style="color:#71717a;font-style:italic">Personalizing\u2026</p>';
 
-      const subject = document.querySelector('.campaign-email__subject')?.textContent || '';
-      const editorEl = document.querySelector('.campaign-editor');
+      const subject = document.getElementById('subject-heading')?.textContent || '';
+      const editorEl = document.getElementById('campaign-editor');
       const body = editorEl ? editorEl.innerHTML : '';
 
       try {
@@ -211,11 +209,11 @@
     
     // Handle dropdown item clicks
     dropdown.addEventListener('click', function(e) {
-      const item = e.target.closest('.campaign-input-dropdown__item');
+      const item = e.target.closest('.js-customer-item');
       if (item) {
         const value = item.getAttribute('data-value');
-        const nameElement = item.querySelector('.campaign-input-dropdown__name');
-        const emailElement = item.querySelector('.campaign-input-dropdown__email');
+        const nameElement = item.querySelector('.js-customer-name');
+        const emailElement = item.querySelector('.js-customer-email');
         const customerName = nameElement ? nameElement.textContent : value;
         const customerEmail = emailElement ? emailElement.textContent : '';
         if (value) {
@@ -232,7 +230,7 @@
     // Filter dropdown items based on input
     input.addEventListener('input', function() {
       const searchTerm = input.value.toLowerCase();
-      const items = dropdown.querySelectorAll('.campaign-input-dropdown__item');
+      const items = dropdown.querySelectorAll('.js-customer-item');
       
       items.forEach(item => {
         const text = item.textContent.toLowerCase();

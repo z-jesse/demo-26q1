@@ -1,54 +1,54 @@
 <div class="analytics-page">
-  <header class="analytics-header">
-    <h2 class="text-wrapper-7">Analytics</h2>
-    <div class="analytics-filters">
-      <div class="field analytics-select" data-colors-mode="dark">
-        <select class="analytics-select__input" aria-label="Location">
+  <header class="panel-header">
+    <h2 class="panel-title">Analytics</h2>
+    <div class="panel-actions">
+      <div class="form-field m-0" data-colors-mode="dark">
+        <select class="form-input form-input--select h-10 min-h-0 text-sm py-0 bg-transparent border-[rgba(255,255,255,0.2)]" aria-label="Location">
           <option>Studio Number 1</option>
         </select>
       </div>
-      <div class="field analytics-select" data-colors-mode="dark">
-        <select class="analytics-select__input" aria-label="Date range">
+      <div class="form-field m-0" data-colors-mode="dark">
+        <select class="form-input form-input--select h-10 min-h-0 text-sm py-0 bg-transparent border-[rgba(255,255,255,0.2)]" aria-label="Date range">
           <option>This Week Aug 4, 2023 – 10, 2024</option>
         </select>
       </div>
-      <button type="button" class="frame-11 analytics-apply" data-colors-mode="dark">Apply</button>
-      <button type="button" class="frame-11 analytics-action" data-colors-mode="dark"><span class="analytics-action__icon" aria-hidden="true">⋮</span> Action</button>
+      <button type="button" class="panel-btn panel-btn--outline" data-colors-mode="dark">Apply</button>
+      <button type="button" class="panel-btn" data-colors-mode="dark"><span class="analytics-action__icon" aria-hidden="true">⋮</span> Action</button>
     </div>
   </header>
 
   <div class="analytics-kpi-row">
-    <section class="frame-15 analytics-kpi-card" data-colors-mode="dark" aria-labelledby="revenue-heading">
+    <section class="card analytics-kpi-card" data-colors-mode="dark" aria-labelledby="revenue-heading">
       <div class="analytics-card-header">
-        <h3 id="revenue-heading" class="text-wrapper-8">Revenue</h3>
+        <h3 id="revenue-heading" class="typography-h5 text-white m-0">Revenue</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <div id="analytics-revenue-mini" style="height: 80px; width: 100%;"></div>
-      <h2 class="text-wrapper-7 analytics-kpi-value">$30,032</h2>
+      <h2 class="typography-h4 text-white analytics-kpi-value">$30,032</h2>
       <p class="analytics-kpi-meta">$22,500 Last Year</p>
     </section>
-    <section class="frame-15 analytics-kpi-card" data-colors-mode="dark" aria-labelledby="cost-heading">
+    <section class="card analytics-kpi-card" data-colors-mode="dark" aria-labelledby="cost-heading">
       <div class="analytics-card-header">
-        <h3 id="cost-heading" class="text-wrapper-8">Cost</h3>
+        <h3 id="cost-heading" class="typography-h5 text-white m-0">Cost</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <div id="analytics-cost-mini" style="height: 80px; width: 100%;"></div>
-      <h2 class="text-wrapper-7 analytics-kpi-value">$8,950</h2>
+      <h2 class="typography-h4 text-white analytics-kpi-value">$8,950</h2>
       <p class="analytics-kpi-meta">$7,800 Previously</p>
     </section>
-    <section class="frame-15 analytics-kpi-card" data-colors-mode="dark" aria-labelledby="gross-profit-heading">
+    <section class="card analytics-kpi-card" data-colors-mode="dark" aria-labelledby="gross-profit-heading">
       <div class="analytics-card-header">
-        <h3 id="gross-profit-heading" class="text-wrapper-8">Gross Profit</h3>
+        <h3 id="gross-profit-heading" class="typography-h5 text-white m-0">Gross Profit</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <div id="analytics-gross-mini" style="height: 80px; width: 100%;"></div>
-      <h2 class="text-wrapper-7 analytics-kpi-value">$21,082</h2>
+      <h2 class="typography-h4 text-white analytics-kpi-value">$21,082</h2>
     </section>
   </div>
 
-  <section class="frame-15 analytics-chart-card" data-colors-mode="dark" aria-labelledby="visits-heading">
+  <section class="card analytics-chart-card" data-colors-mode="dark" aria-labelledby="visits-heading">
     <div class="analytics-card-header">
-      <h3 id="visits-heading" class="text-wrapper-8">Total Visits / New Visits</h3>
+      <h3 id="visits-heading" class="typography-h5 text-white m-0">Total Visits / New Visits</h3>
       <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
     </div>
     <div class="analytics-legend-inline">
@@ -59,9 +59,9 @@
   </section>
 
   <div class="analytics-mid-row">
-    <section class="frame-15 analytics-metrics-card" data-colors-mode="dark" aria-labelledby="core-metrics-heading">
+    <section class="card analytics-metrics-card" data-colors-mode="dark" aria-labelledby="core-metrics-heading">
       <div class="analytics-card-header">
-        <h3 id="core-metrics-heading" class="text-wrapper-8">Core Metrics</h3>
+        <h3 id="core-metrics-heading" class="typography-h5 text-white m-0">Core Metrics</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <div class="metrics-list metrics-list--two-col">
@@ -69,75 +69,75 @@
           <div class="metric-label-row">
             <p class="metric-label">Visits</p>
           </div>
-          <p class="text-wrapper-10 metric-value">9,520</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">9,520</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">No-shows</p>
           </div>
-          <p class="text-wrapper-10 metric-value">190</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">190</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Bookings</p>
           </div>
-          <p class="text-wrapper-10 metric-value">5,603</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">5,603</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Cancellations</p>
           </div>
-          <p class="text-wrapper-10 metric-value">59</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">59</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Unique customers</p>
           </div>
-          <p class="text-wrapper-10 metric-value">2,824</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">2,824</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Average visits per customer</p>
           </div>
-          <p class="text-wrapper-10 metric-value">3.4</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">3.4</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Classes scheduled</p>
           </div>
-          <p class="text-wrapper-10 metric-value">309</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">309</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Average capacity filled</p>
           </div>
-          <p class="text-wrapper-10 metric-value">44%</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">44%</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Total Memberships</p>
           </div>
-          <p class="text-wrapper-10 metric-value">486</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">486</p>
         </div>
         <div class="metric-item">
           <div class="metric-label-row">
             <p class="metric-label">Total Bundles</p>
           </div>
-          <p class="text-wrapper-10 metric-value">132</p>
+          <p class="typography-body-reg text-[var(--colors-text-strong)] metric-value">132</p>
         </div>
       </div>
     </section>
-    <section class="frame-15 analytics-chart-card" data-colors-mode="dark" aria-labelledby="bookings-heading">
+    <section class="card analytics-chart-card" data-colors-mode="dark" aria-labelledby="bookings-heading">
       <div class="analytics-card-header">
-        <h3 id="bookings-heading" class="text-wrapper-8">Total Bookings</h3>
+        <h3 id="bookings-heading" class="typography-h5 text-white m-0">Total Bookings</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <p class="analytics-chart-summary">5,603</p>
       <div id="analytics-bookings-chart" class="analytics-chart-container" style="min-height: 200px; width: 100%;"></div>
     </section>
-    <section class="frame-15 analytics-chart-card" data-colors-mode="dark" aria-labelledby="members-heading">
+    <section class="card analytics-chart-card" data-colors-mode="dark" aria-labelledby="members-heading">
       <div class="analytics-card-header">
-        <h3 id="members-heading" class="text-wrapper-8">Total Members / Total Bundles</h3>
+        <h3 id="members-heading" class="typography-h5 text-white m-0">Total Members / Total Bundles</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <div class="analytics-legend-inline">
@@ -149,17 +149,17 @@
   </div>
 
   <div class="analytics-bottom-row">
-    <section class="frame-15 analytics-chart-card" data-colors-mode="dark" aria-labelledby="visit-dist-heading">
+    <section class="card analytics-chart-card" data-colors-mode="dark" aria-labelledby="visit-dist-heading">
       <div class="analytics-card-header">
-        <h3 id="visit-dist-heading" class="text-wrapper-8">Visit Distribution (Day × Week)</h3>
+        <h3 id="visit-dist-heading" class="typography-h5 text-white m-0">Visit Distribution (Day × Week)</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <p class="analytics-chart-summary">9520 Total Visits</p>
       <div id="analytics-heatmap" style="height: 320px; width: 100%;"></div>
     </section>
-    <section class="frame-15 analytics-chart-card analytics-donut-card" data-colors-mode="dark" aria-labelledby="retention-heading">
+    <section class="card analytics-chart-card analytics-donut-card" data-colors-mode="dark" aria-labelledby="retention-heading">
       <div class="analytics-card-header">
-        <h3 id="retention-heading" class="text-wrapper-8">Customer Retention</h3>
+        <h3 id="retention-heading" class="typography-h5 text-white m-0">Customer Retention</h3>
         <button type="button" class="analytics-card-menu" aria-label="Options">⋯</button>
       </div>
       <div id="analytics-retention-donut" style="height: 280px; width: 100%;"></div>

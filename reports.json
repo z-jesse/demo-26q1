@@ -1,0 +1,22 @@
+[
+  {
+    "id": "63db05a1-067c-48d3-81d8-6935d61977d6",
+    "name": "Studio Performance Overview (All-in-One)",
+    "type": "",
+    "date_range": "last_7_days",
+    "start": "May 13, 2026",
+    "end": "May 20, 2026",
+    "prompt": "Give me a report on my revenue, my visit count, and my membership count. Include a narrative summary first, a line chart of daily revenue, a bar chart of daily class attendance visits, and a donut chart of membership plan distribution.",
+    "last_run": "May 20, 2026"
+  },
+  {
+    "id": "f55b6e1a-957c-49f8-9a5f-3c93b675c941",
+    "name": "Financial & Revenue Summary",
+    "type": "",
+    "date_range": "last_30_days",
+    "start": "Apr 20, 2026",
+    "end": "May 20, 2026",
+    "prompt": "Give me a detailed financial report showing total realized revenue, a breakdown of revenue by source (membership, product, booking) as a donut chart, and a line chart of daily revenue trends.",
+    "last_run": "May 20, 2026"
+  }
+]

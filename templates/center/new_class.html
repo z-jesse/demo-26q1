@@ -1,127 +1,125 @@
-<div class="add-new-class">
-    <div class="title"><div class="text-wrapper">Add New Class</div></div>
-    <div class="fields">
-    <div class="div">
-        <div class="text-wrapper-2">Details</div>
-        <div class="div-2">
-        <div class="input-field">
-            <div class="div-3"><div class="field-label">Class Name</div></div>
-            <div class="field"><div class="text-wrapper-3" id="nc-name">ALO + Wild Thing: Reset and Renewal</div></div>
+<div class="new-class-page">
+  <header class="panel-header">
+    <h2 class="panel-title">Add New Class</h2>
+  </header>
+  
+  <div class="panel-body flex flex-col gap-[30px] p-[20px]">
+    <div class="form-section">
+        <h3 class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Details</h3>
+        <div class="flex flex-col gap-4 w-full">
+            <div class="form-field">
+                <label class="field-label">Class Name</label>
+                <div class="form-input" id="nc-name">ALO + Wild Thing: Reset and Renewal</div>
+            </div>
+
+            <div class="form-field">
+                <label class="field-label">Description</label>
+                <div class="form-input form-input--placeholder">Write something...</div>
+            </div>
+
+            <div class="flex gap-4 items-end">
+                <div class="form-field flex-1">
+                    <label class="field-label">Location</label>
+                    <div class="form-input form-input--select form-input--placeholder">
+                        <span>Select...</span>
+                        <img class="field-icon" src="/static/img/chevron-down-small.svg" alt="" />
+                    </div>
+                </div>
+                <button type="button" class="panel-btn panel-btn--outline flex items-center gap-2 h-[48px]">
+                    <span class="icon-plus text-xl font-light leading-none" aria-hidden="true">+</span> Add New Location
+                </button>
+            </div>
+
+            <div class="flex gap-4 items-end">
+                <div class="form-field flex-1">
+                    <label class="field-label">Teacher</label>
+                    <div class="form-input form-input--select form-input--placeholder">
+                        <span>Select...</span>
+                        <img class="field-icon" src="/static/img/chevron-down-small.svg" alt="" />
+                    </div>
+                </div>
+                <button type="button" class="panel-btn panel-btn--outline flex items-center gap-2 h-[48px]">
+                    <span class="icon-plus text-xl font-light leading-none" aria-hidden="true">+</span> Add New Teacher
+                </button>
+            </div>
         </div>
-        <div class="input-field-2">
-            <div class="div-3"><div class="field-label">Description</div></div>
-            <div class="field-2"><div class="placeholder">Write something...</div></div>
-        </div>
-        <div class="frame">
-            <div class="select-field">
-            <div class="select-field-filled">
-                <div class="div-3"><div class="field-label">Location</div></div>
-                <div class="field-3">
-                <div class="text-wrapper-3">Select...</div>
-                <div class="icon"><img class="img" src="/static/img/chevron-down-small.svg" alt="" /></div>
+    </div>
+
+    <div class="form-section">
+        <h3 class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Date &amp; Time</h3>
+        <div class="flex flex-col gap-4 w-full">
+            <div class="flex gap-6 pt-2 pb-2">
+                <label class="flex items-center gap-2 cursor-pointer typography-body-lg">
+                    <input type="radio" name="class_type" checked class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                    <span>One-off Class</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer typography-body-lg">
+                    <input type="radio" name="class_type" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                    <span>Recurring Class</span>
+                </label>
+            </div>
+
+            <div class="flex gap-4">
+                <div class="form-field flex-1">
+                    <label class="field-label">Date</label>
+                    <div class="form-input form-input--select">
+                        <span id="nc-date">{{ tomorrow_date_str }}</span>
+                        <img class="field-icon" src="/static/img/calendar-3-date.svg" alt="" />
+                    </div>
                 </div>
             </div>
-            </div>
-            <button class="button">
-            <div class="plus-small-add-small-wrapper"><span class="icon-plus" aria-hidden="true">+</span></div>
-            <div class="add-new">Add New Location</div>
-            </button>
-        </div>
-        <div class="frame">
-            <div class="select-field">
-            <div class="select-field-filled">
-                <div class="div-3"><div class="field-label">Teacher</div></div>
-                <div class="field-3">
-                <div class="text-wrapper-3">Select...</div>
-                <div class="icon"><img class="img" src="/static/img/chevron-down-small.svg" alt="" /></div>
+
+            <div class="flex gap-4">
+                <div class="form-field flex-1">
+                    <label class="field-label">Time</label>
+                    <div class="form-input form-input--select">
+                        <span id="nc-time">10:00 am</span>
+                        <img class="field-icon" src="/static/img/calendar-3-date.svg" alt="" />
+                    </div>
+                </div>
+                <div class="form-field flex-1">
+                    <label class="field-label">Duration</label>
+                    <div class="form-input" id="nc-duration">60 minutes</div>
                 </div>
             </div>
-            </div>
-            <button class="button">
-            <div class="plus-small-add-small-wrapper"><span class="icon-plus" aria-hidden="true">+</span></div>
-            <div class="add-new">Add New Teacher</div>
-            </button>
-        </div>
         </div>
     </div>
-    <div class="div">
-        <div class="text-wrapper-2">Date &amp; Time</div>
-        <div class="fields-2">
-        <div class="type">
-            <div class="div-4">
-            <div class="checkbox-and-label">
-                <div class="radio"><div class="radio-2"></div></div>
-                <div class="label">One-off Class</div>
-            </div>
-            </div>
-            <div class="div-4">
-            <div class="checkbox-and-label">
-                <div class="radio-3"></div>
-                <div class="label">Recurring Class</div>
-            </div>
-            </div>
-        </div>
-        <div class="div-5">
-            <div class="div-4">
-            <div class="div-3"><div class="field-label">Date</div></div>
-            <div class="field">
-                <div class="text-wrapper-3" id="nc-date">{{ tomorrow_date_str }}</div>
-                <div class="icon"><img class="img" src="/static/img/calendar-3-date.svg" alt="" /></div>
-            </div>
-            </div>
-        </div>
-        <div class="div-5">
-            <div class="div-4">
-            <div class="div-3"><div class="field-label">Time</div></div>
-            <div class="field">
-                <div class="text-wrapper-3" id="nc-time">10:00 am</div>
-                <div class="icon"><img class="img" src="/static/img/calendar-3-date.svg" alt="" /></div>
-            </div>
-            </div>
-            <div class="div-4">
-            <div class="div-3"><div class="field-label">Duration</div></div>
-            <div class="field"><div class="text-wrapper-3" id="nc-duration">60 minutes</div></div>
-            </div>
-        </div>
+
+    <div class="form-section">
+        <h3 class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Participants</h3>
+        <div class="form-field w-1/2">
+            <label class="field-label">Max Participants</label>
+            <div class="form-input" id="nc-max">20</div>
+            <p class="text-sm text-[var(--colors-text-moderate)] mt-1">Leave it empty if infinite</p>
         </div>
     </div>
-    <div class="div">
-        <div class="text-wrapper-2">Participants</div>
-        <div class="input-field-wrapper">
-        <div class="div-4">
-            <div class="div-3"><div class="field-label">Max Participants</div></div>
-            <div class="field"><div class="text-wrapper-3" id="nc-max">20</div></div>
-            <div class="div-3"><p class="description">Leave it empty if infinite</p></div>
-        </div>
-        </div>
-    </div>
-    <div class="div">
-        <div class="text-wrapper-2">Images</div>
-        <div class="image">
-        <div class="img-upload">
-            <p class="p">Drag ‘n’ drop some file here, or click to select file</br>(10MB limit per file)</p>
-        </div>
-        <p class="text-wrapper-4">
-            Use a high quality landscape image. Recommended ratio for this image is 3:2. It will be displayed in all
-            class details, schedule, and checkout.
-        </p>
+
+    <div class="form-section">
+        <h3 class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Images</h3>
+        <div class="flex flex-col gap-2 w-full">
+            <div class="border-2 border-dashed border-[var(--colors-border-strong)] rounded-xl p-8 text-center bg-[var(--colors-bg-dugout)] cursor-pointer hover:bg-opacity-80 transition-colors">
+                <p class="typography-body-lg text-[var(--colors-text-moderate)]">Drag 'n' drop some file here, or click to select file<br>(10MB limit per file)</p>
+            </div>
+            <p class="typography-body-sm text-[var(--colors-text-moderate)] leading-[1.4]">
+                Use a high quality landscape image. Recommended ratio for this image is 3:2. It will be displayed in all class details, schedule, and checkout.
+            </p>
         </div>
     </div>
-    <div class="div">
-        <div class="text-wrapper-2">Payment Settings</div>
-        <div class="div-2">
-        <div class="input-field-3">
-            <div class="div-3"><div class="field-label">Price</div></div>
-            <div class="field-4">
-            <div class="text-wrapper-3" id="nc-price">0</div>
-            <span class="icon-dollar" aria-hidden="true">$</span>
+
+    <div class="form-section">
+        <h3 class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Payment Settings</h3>
+        <div class="form-field w-1/3">
+            <label class="field-label">Price</label>
+            <div class="form-input form-input--select">
+                <span id="nc-price">0</span>
+                <span aria-hidden="true">$</span>
             </div>
         </div>
-        </div>
     </div>
-    <div class="btn">
-        <button class="button-2"><div class="add-new-2">Cancel</div></button>
-        <a href="/?center=classes&new=1" class="button-3"><div class="add-new-3">Add New Class</div></a>
+
+    <div class="flex justify-end gap-4 mt-6">
+        <a href="/?center=classes" class="panel-btn panel-btn--outline flex items-center justify-center w-auto px-6 h-[48px] no-underline">Cancel</a>
+        <a href="/?center=classes&new=1" class="panel-btn flex items-center justify-center w-auto px-6 h-[48px] no-underline">Add New Class</a>
     </div>
-    </div>
+  </div>
 </div>

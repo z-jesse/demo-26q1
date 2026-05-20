@@ -8,135 +8,117 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='globals.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+<!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Figtree', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      {% include "main.css" %}
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@3.3.1/plotly.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   </head>
   <body>
+    {% set nav_items = [
+      {'href': '/',                  'icon': 'home-roof-house.svg',           'label': 'Dashboard'},
+      {'href': '#checkin',           'icon': 'clipboard-2-copy-list.svg',     'label': 'Check In'},
+      {'href': '#pos',               'icon': 'store-shop-business.svg',       'label': 'Point of Sale'},
+      {'href': '#schedule',          'icon': 'calendar-3-date.svg',           'label': 'Schedule'},
+      {'href': '/?center=classes',   'icon': 'people-2-user-avatar-group.svg','label': 'Classes'},
+      {'href': '#memberships',       'icon': 'crown-vip.svg',                 'label': 'Memberships'},
+      {'href': '#customers',         'icon': 'people-user-person-avatar.svg', 'label': 'Customers'},
+      {'href': '#communications',    'icon': 'bubble-2-message.svg',          'label': 'Communications'},
+      {'href': '/?center=analytics', 'icon': 'chart-5-statistics-graph.svg',  'label': 'Analytics'},
+      {'href': '/?center=reports',   'icon': 'clipboard-2-copy-list.svg',     'label': 'Reports'},
+      {'href': '#team',              'icon': 'postcard-card-news.svg',        'label': 'Team'},
+      {'href': '#settings',          'icon': 'settings-gear-2-preferences.svg','label': 'Settings'}
+    ] %}
     <div class="base" data-colors-mode="dark">
-      <aside class="frame" role="navigation" aria-label="Main navigation">
-        <div class="div-wrapper">
-          <h1 class="text-wrapper">Vygor</h1>
+      <aside class="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="sidebar-header">
+          <h1 class="sidebar-logo">Vygor</h1>
         </div>
-        <nav class="div">
-          <button class="frame-2" data-colors-mode="dark" aria-label="Chat">
-            <img class="img" src="/static/img/sparkles-two-ai-2-stars-sparkles.svg" alt="" aria-hidden="true" />
-            <span class="text-wrapper-2">Chat</span>
+        <nav class="sidebar-nav">
+          <button class="sidebar-chat-btn" data-colors-mode="dark" aria-label="Chat" id="chat-toggle-nav">
+            <img class="icon-sm" src="/static/img/sparkles-two-ai-2-stars-sparkles.svg" alt="" aria-hidden="true" />
+            <span class="nav-btn-label">Chat</span>
           </button>
-          <ul class="frame-3" data-colors-mode="dark">
+          <ul class="sidebar-nav-list" data-colors-mode="dark">
+            {% for item in nav_items %}
             <li>
-              <a href="/" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/home-roof-house.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Dashboard</span>
+              <a href="{{ item.href }}" class="sidebar-nav-link" data-colors-mode="dark">
+                <img class="icon-sm" src="/static/img/{{ item.icon }}" alt="" aria-hidden="true" />
+                <span class="nav-link-label">{{ item.label }}</span>
               </a>
             </li>
-            <li>
-              <a href="#checkin" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/clipboard-2-copy-list.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Check In</span>
-              </a>
-            </li>
-            <li>
-              <a href="#pos" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/store-shop-business.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Point of Sale</span>
-              </a>
-            </li>
-            <li>
-              <a href="#schedule" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/calendar-3-date.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Schedule</span>
-              </a>
-            </li>
-            <li>
-              <a href="/?center=classes" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/people-2-user-avatar-group.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Classes</span>
-              </a>
-            </li>
-            <li>
-              <a href="#memberships" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/crown-vip.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Memberships</span>
-              </a>
-            </li>
-            <li>
-              <a href="#customers" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/people-user-person-avatar.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Customers</span>
-              </a>
-            </li>
-            <li>
-              <a href="#communications" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/bubble-2-message.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Communications</span>
-              </a>
-            </li>
-            <li>
-              <a href="/?center=analytics" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/chart-5-statistics-graph.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Analytics</span>
-              </a>
-            </li>
-            <li>
-              <a href="#team" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/postcard-card-news.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Team</span>
-              </a>
-            </li>
-            <li>
-              <a href="#settings" class="frame-4" data-colors-mode="dark">
-                <img class="img" src="/static/img/settings-gear-2-preferences.svg" alt="" aria-hidden="true" />
-                <span class="text-wrapper-3">Settings</span>
-              </a>
-            </li>
+            {% endfor %}
           </ul>
         </nav>
-        <div class="frame-wrapper">
-          <div class="frame-5" data-colors-mode="dark">
-            <img class="frame-6" src="/static/img/panther.jpg" alt="Vygor Test logo" />
-            <div class="frame-7">
-              <div class="text-wrapper-4">Vygor Test</div>
-              <div class="text-wrapper-5">Yoga Studio</div>
+        <div class="sidebar-profile-wrap">
+          <div class="sidebar-profile-card" data-colors-mode="dark">
+            <img class="sidebar-profile-img" src="/static/img/panther.jpg" alt="Vygor Test logo" />
+            <div class="sidebar-profile-info">
+              <div class="sidebar-profile-name">Vygor Test</div>
+              <div class="sidebar-profile-sub">Yoga Studio</div>
             </div>
           </div>
         </div>
       </aside>
-      <main class="frame-8">
-        <header class="frame-9">
-          <div class="search-field" data-colors-mode="dark">
-            <form class="field" role="search" aria-label="Search">
-              <img class="img" src="/static/img/magnifying-glass-search.svg" alt="" aria-hidden="true" />
+      <main class="content">
+        <header class="topbar">
+          <div class="topbar-search" data-colors-mode="dark">
+            <form class="topbar-search-form" role="search" aria-label="Search">
+              <img class="icon-sm" src="/static/img/magnifying-glass-search.svg" alt="" aria-hidden="true" />
               <label for="search-input" class="visually-hidden">Search</label>
-              <input id="search-input" class="search" placeholder="Search" type="search" name="search" />
+              <input id="search-input" class="topbar-search-input" placeholder="Search" type="search" name="search" />
             </form>
           </div>
-          <div class="frame-10">
-            <button class="frame-11" data-colors-mode="dark" aria-label="Point of Sale">
-              <img class="img-2" src="/static/img/store-shop-business-yellow.svg" alt="" aria-hidden="true" />
-              <span class="text-wrapper-6">PoS</span>
+          <div class="topbar-actions">
+            <button class="topbar-action-btn" data-colors-mode="dark" aria-label="Point of Sale">
+              <img class="icon-sm-offset" src="/static/img/store-shop-business-yellow.svg" alt="" aria-hidden="true" />
+              <span class="topbar-btn-label">PoS</span>
             </button>
-            <button class="frame-11" data-colors-mode="dark" aria-label="Check In">
-              <img class="img-2" src="/static/img/clipboard-2-copy-list-yellow.svg" alt="" aria-hidden="true" />
-              <span class="text-wrapper-6">Check In</span>
+            <button class="topbar-action-btn" data-colors-mode="dark" aria-label="Check In">
+              <img class="icon-sm-offset" src="/static/img/clipboard-2-copy-list-yellow.svg" alt="" aria-hidden="true" />
+              <span class="topbar-btn-label">Check In</span>
             </button>
-            <button class="frame-12" aria-label="User menu">
-              <img class="ellipse" src="/static/img/brandon.jpg" alt="Test User avatar" />
-              <span class="text-wrapper-3">Brandon Wang</span>
-              <img class="img-3" src="/static/img/chevron-down-small.svg" alt="" aria-hidden="true" />
+            <button class="topbar-user-btn" aria-label="User menu">
+              <img class="user-avatar" src="/static/img/brandon.jpg" alt="Test User avatar" />
+              <span class="nav-link-label">Brandon Wang</span>
+              <img class="icon-chevron" src="/static/img/chevron-down-small.svg" alt="" aria-hidden="true" />
             </button>
           </div>
         </header>
-        <div class="frame-13" data-colors-mode="dark">
-          <div class="frame-14">
+        <div class="main-content" data-colors-mode="dark">
+          <div class="center-content">
             {% include (center_template or "center/dashboard.html") %}
           </div>
-          <aside class="frame-23" aria-label="AI Assistant">
-            <div class="frame-24" aria-live="polite">
+          <aside id="chat-sidebar" class="chat-sidebar" aria-label="Vygor Intelligence">
+            <div class="chat-header">
+              <div class="chat-header-title">
+                <span>Vygor Intelligence</span>
+              </div>
+              <button class="chat-minimize-btn" id="chat-minimize-btn" title="Hide Vygor Intelligence" aria-label="Hide Vygor Intelligence">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="chat-messages" aria-live="polite">
               <div id="chat-log"></div>
             </div>
-            <div class="frame-25">
+            <div class="chat-input-box">
               <form id="assistant-form" method="post" action="{{ url_for('home', center=center_key) }}">
                 <textarea
                   id="prompt-input"
@@ -149,6 +131,11 @@
               </form>
             </div>
           </aside>
+
+          <!-- Floating chat restore button -->
+          <button id="chat-floating-btn" class="chat-floating-btn" aria-label="Open AI Assistant" title="Open AI Assistant">
+            <img src="/static/img/sparkles-two-ai-2-stars-sparkles.svg" alt="" aria-hidden="true" />
+          </button>
         </div>
       </main>
     </div>
@@ -159,6 +146,70 @@
         const textarea = document.getElementById("prompt-input");
         const chatLog = document.getElementById("chat-log");
         if (!form || !textarea || !chatLog) return;
+
+        // ── Minimize / Collapse Chat Sidebar ──────────────────────────────────
+        const chatSidebar = document.getElementById("chat-sidebar");
+        const minimizeBtn = document.getElementById("chat-minimize-btn");
+        const floatingBtn = document.getElementById("chat-floating-btn");
+        const toggleNavBtn = document.getElementById("chat-toggle-nav");
+
+        const COLLAPSED_STORAGE_KEY = "vygor-chat-collapsed";
+
+        function setChatCollapsed(isCollapsed, animate = true) {
+          if (!chatSidebar) return;
+          
+          if (!animate) {
+            // Disable transition temporarily to avoid flash on reload
+            chatSidebar.style.transition = "none";
+            if (floatingBtn) floatingBtn.style.transition = "none";
+            // Force reflow
+            chatSidebar.offsetHeight;
+          }
+          
+          if (isCollapsed) {
+            chatSidebar.classList.add("chat-collapsed");
+            if (floatingBtn) floatingBtn.classList.add("visible");
+            sessionStorage.setItem(COLLAPSED_STORAGE_KEY, "true");
+          } else {
+            chatSidebar.classList.remove("chat-collapsed");
+            if (floatingBtn) floatingBtn.classList.remove("visible");
+            sessionStorage.setItem(COLLAPSED_STORAGE_KEY, "false");
+          }
+          
+          if (!animate) {
+            // Re-enable transition after a brief moment
+            setTimeout(() => {
+              chatSidebar.style.transition = "";
+              if (floatingBtn) floatingBtn.style.transition = "";
+            }, 50);
+          }
+        }
+
+        // Restore state on load
+        try {
+          const isCollapsedSaved = sessionStorage.getItem(COLLAPSED_STORAGE_KEY) === "true";
+          setChatCollapsed(isCollapsedSaved, false);
+        } catch (_) {}
+
+        if (minimizeBtn) {
+          minimizeBtn.addEventListener("click", function() {
+            setChatCollapsed(true);
+          });
+        }
+
+        if (floatingBtn) {
+          floatingBtn.addEventListener("click", function() {
+            setChatCollapsed(false);
+          });
+        }
+
+        if (toggleNavBtn) {
+          toggleNavBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const isCurrentlyCollapsed = chatSidebar.classList.contains("chat-collapsed");
+            setChatCollapsed(!isCurrentlyCollapsed);
+          });
+        }
 
         const STORAGE_KEY = "vygor-chat-history-v2";
         // [{role: "user"|"assistant", html: "...", text: "..."}]
@@ -251,6 +302,9 @@
           const controller = new AbortController();
           currentController = controller;
 
+          let streamHtml = "";
+          let firstReal = true;
+
           try {
             const resp = await fetch("/api/stream", {
               method: "POST",
@@ -262,8 +316,6 @@
             const reader = resp.body.getReader();
             const decoder = new TextDecoder();
             let buf = "";
-            let firstReal = true;
-            let streamHtml = "";
 
             while (true) {
               const { done, value } = await reader.read();
@@ -281,11 +333,6 @@
                   const msg = line.slice(6);
 
                   if (msg.startsWith("__REDIRECT__")) {
-                    // Commit AI response to history before navigating away
-                    const tmp = document.createElement("div");
-                    tmp.innerHTML = aiBubble.innerHTML;
-                    chatHistory.push({ role: "assistant", html: aiBubble.innerHTML, text: tmp.textContent || "" });
-                    persist();
                     const payload = msg.slice("__REDIRECT__".length);
                     const url = new URL(window.location.href);
                     if (payload.includes("=")) {
@@ -334,17 +381,15 @@
               streamHtml = '<span style="color:#dc2626">Connection error — please try again.</span>';
               aiBubble.innerHTML = streamHtml;
             }
+          } finally {
+            // Commit AI response to history
+            chatHistory.push({ role: "assistant", html: aiBubble.innerHTML, text: streamHtml || "" });
+            persist();
+
+            currentController = null;
+            textarea.disabled = false;
+            textarea.focus();
           }
-
-          // Commit AI response to history
-          const tmp = document.createElement("div");
-          tmp.innerHTML = aiBubble.innerHTML;
-          chatHistory.push({ role: "assistant", html: aiBubble.innerHTML, text: tmp.textContent || "" });
-          persist();
-
-          currentController = null;
-          textarea.disabled = false;
-          textarea.focus();
         }
 
         form.addEventListener("submit", function (e) { e.preventDefault(); submitPrompt(); });

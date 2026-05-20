@@ -1,0 +1,235 @@
+{
+  "generated_at": "May 20, 2026",
+  "sections": [
+    {
+      "type": "text",
+      "title": "Narrative Summary: Week at a Glance",
+      "content": "The week of May 13\u201320, 2026 provides a snapshot of the studio's core health across three pillars: revenue, class attendance, and membership composition. With the Intro Offer plan dominating the membership base, the studio is in a high-acquisition phase, meaning conversion of trial members to paid recurring plans is the single biggest lever for sustainable growth. Class attendance patterns will reveal whether engagement is concentrated on specific days, informing scheduling and instructor allocation decisions. Together, these three signals paint a clear picture of where momentum is building and where attention is needed."
+    },
+    {
+      "type": "chart",
+      "title": "Daily Revenue (May 13\u201320, 2026)",
+      "chart_type": "line",
+      "sql": "SELECT strftime('%Y-%m-%d', created_at) AS day, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-05-13' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY day ORDER BY day",
+      "x_column": "day",
+      "y_column": "revenue",
+      "content": "Daily revenue fluctuations over this period reveal which days drive disproportionate income \u2014 often tied to membership renewals or class pack purchases. Spikes on particular days may correspond to scheduled renewal cycles rather than organic purchasing, which is worth cross-referencing with the membership plan distribution. Flat or low-revenue days are opportunities to introduce promotions or targeted email campaigns to drive same-day purchases.",
+      "spec": {
+        "data": [
+          {
+            "x": [
+              "2026-05-13",
+              "2026-05-14",
+              "2026-05-15",
+              "2026-05-16",
+              "2026-05-17",
+              "2026-05-18",
+              "2026-05-19",
+              "2026-05-20"
+            ],
+            "y": [
+              1884.0,
+              891.0,
+              2111.0,
+              1823.0,
+              951.0,
+              1089.0,
+              1284.0,
+              170.0
+            ],
+            "type": "scatter",
+            "mode": "lines",
+            "fill": "tozeroy",
+            "fillcolor": "rgba(4,152,224,0.4)",
+            "fillgradient": {
+              "type": "vertical",
+              "colorscale": [
+                [
+                  0,
+                  "rgba(4,152,224,0)"
+                ],
+                [
+                  1,
+                  "rgba(4,152,224,0.3)"
+                ]
+              ]
+            },
+            "line": {
+              "color": "#0498e0",
+              "width": 2
+            }
+          }
+        ],
+        "layout": {
+          "paper_bgcolor": "rgba(0,0,0,0)",
+          "plot_bgcolor": "rgba(0,0,0,0)",
+          "font": {
+            "family": "Figtree"
+          },
+          "showlegend": false,
+          "autosize": true,
+          "margin": {
+            "t": 0,
+            "r": 8,
+            "b": 24,
+            "l": 40
+          },
+          "xaxis": {
+            "tickfont": {
+              "color": "rgba(122,122,122,1)",
+              "size": 12,
+              "family": "Figtree"
+            },
+            "showgrid": false,
+            "zeroline": false
+          },
+          "yaxis": {
+            "tickfont": {
+              "color": "rgba(122,122,122,1)",
+              "size": 12,
+              "family": "Figtree"
+            },
+            "showgrid": false,
+            "zeroline": false,
+            "gridcolor": "rgba(61,61,61,1)"
+          }
+        }
+      }
+    },
+    {
+      "type": "chart",
+      "title": "Daily Class Attendance Visits (May 13\u201320, 2026)",
+      "chart_type": "bar",
+      "sql": "SELECT strftime('%Y-%m-%d', start_at) AS day, COUNT(*) AS visits FROM vw_class_attendance WHERE status = 'confirmed' AND checked_in_at IS NOT NULL AND strftime('%Y-%m-%d', start_at) >= '2026-05-13' AND strftime('%Y-%m-%d', start_at) <= '2026-05-20' GROUP BY day ORDER BY day",
+      "x_column": "day",
+      "y_column": "visits",
+      "content": "Attendance volume by day highlights the studio's peak engagement windows and exposes under-utilized days in the schedule. A consistent mid-week dip, for example, signals an opportunity to add programming or incentivize attendance with challenges or workshops. Strong weekend numbers relative to weekdays may also indicate a client base with 9-to-5 schedules, which could inform when to introduce new class formats or promotional offers.",
+      "spec": {
+        "data": [
+          {
+            "x": [
+              "2026-05-13",
+              "2026-05-14",
+              "2026-05-15",
+              "2026-05-16",
+              "2026-05-17",
+              "2026-05-18",
+              "2026-05-19"
+            ],
+            "y": [
+              48,
+              17,
+              29,
+              30,
+              52,
+              24,
+              18
+            ],
+            "type": "bar",
+            "marker": {
+              "color": "#0498e0",
+              "opacity": 0.85
+            }
+          }
+        ],
+        "layout": {
+          "paper_bgcolor": "rgba(0,0,0,0)",
+          "plot_bgcolor": "rgba(0,0,0,0)",
+          "font": {
+            "family": "Figtree"
+          },
+          "showlegend": false,
+          "autosize": true,
+          "margin": {
+            "t": 0,
+            "r": 8,
+            "b": 24,
+            "l": 40
+          },
+          "xaxis": {
+            "tickfont": {
+              "color": "rgba(122,122,122,1)",
+              "size": 12,
+              "family": "Figtree"
+            },
+            "showgrid": false,
+            "zeroline": false
+          },
+          "yaxis": {
+            "tickfont": {
+              "color": "rgba(122,122,122,1)",
+              "size": 12,
+              "family": "Figtree"
+            },
+            "showgrid": false,
+            "zeroline": false,
+            "gridcolor": "rgba(61,61,61,1)"
+          }
+        }
+      }
+    },
+    {
+      "type": "chart",
+      "title": "Membership Plan Distribution",
+      "chart_type": "donut",
+      "sql": "SELECT plan_name, COUNT(*) AS member_count FROM vw_memberships WHERE state = 'active' GROUP BY plan_name ORDER BY member_count DESC",
+      "label_column": "plan_name",
+      "value_column": "member_count",
+      "content": "The membership mix tells the story of the studio's revenue durability. A base heavily weighted toward Intro Offers signals strong top-of-funnel acquisition, but limited long-term revenue predictability \u2014 intro members typically churn or convert within 30\u201360 days. The relative share of recurring plans like Unlimited/Month and Founding Membership represents the studio's most stable revenue core, and growing that slice should be a strategic priority. Understanding this distribution helps set realistic conversion targets and shapes which plan to promote next.",
+      "spec": {
+        "data": [
+          {
+            "values": [
+              550,
+              39,
+              35,
+              31,
+              27,
+              6,
+              1
+            ],
+            "labels": [
+              "Intro Offer",
+              "10 Class Pack",
+              "Unlimited / Month",
+              "4 Classes / Month",
+              "Founding Membership",
+              "Test membership",
+              "Michael's Membership"
+            ],
+            "type": "pie",
+            "hole": 0.6,
+            "marker": {
+              "colors": [
+                "rgba(4,152,224,0.9)",
+                "rgba(4,152,224,0.5)",
+                "rgba(4,152,224,0.2)"
+              ]
+            },
+            "textinfo": "none"
+          }
+        ],
+        "layout": {
+          "paper_bgcolor": "rgba(0,0,0,0)",
+          "plot_bgcolor": "rgba(0,0,0,0)",
+          "font": {
+            "family": "Figtree"
+          },
+          "showlegend": false,
+          "autosize": true,
+          "margin": {
+            "t": 8,
+            "r": 8,
+            "b": 8,
+            "l": 8
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "title": "Recommendations",
+      "content": "1. **Convert Intro Offer members aggressively.** With Intro Offers comprising the vast majority of active memberships, implement a timed nurture sequence \u2014 emails, in-studio conversations, and a limited-time upgrade incentive \u2014 timed to fire before the intro period expires. 2. **Capitalize on high-attendance days.** Use peak attendance days identified in the bar chart to schedule workshops, retail promotions, or upsell conversations, maximizing revenue-per-visit on days when foot traffic is already high. 3. **Stimulate low-revenue days.** For days where both attendance and revenue are weak, consider flash promotions, bring-a-friend offers, or class challenges to build habit and fill capacity. 4. **Grow recurring plan share.** Prioritize marketing the Unlimited/Month and Founding Membership tiers to Intro Offer graduates \u2014 these members already know the studio and are most likely to convert with a well-timed offer."
+    }
+  ]
+}
