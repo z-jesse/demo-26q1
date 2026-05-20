@@ -2,10 +2,32 @@
   "generated_at": "May 20, 2026",
   "sections": [
     {
+      "type": "table",
+      "title": "Total Realized Revenue",
+      "content": "This section captures the headline financial performance for the period. Understanding the aggregate realized revenue sets the baseline for evaluating whether the studio is trending toward its monthly targets. Any gap between expected and actual revenue should prompt a review of cancellations, refunds, or underperforming offerings.",
+      "sql": "SELECT COUNT(payment_id) AS total_transactions, ROUND(SUM(amount_dollars), 2) AS total_revenue_dollars, ROUND(AVG(amount_dollars), 2) AS avg_transaction_value, ROUND(MIN(amount_dollars), 2) AS min_transaction, ROUND(MAX(amount_dollars), 2) AS max_transaction FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20'",
+      "columns": [
+        "Total Transactions",
+        "Total Revenue ($)",
+        "Avg Transaction ($)",
+        "Min Transaction ($)",
+        "Max Transaction ($)"
+      ],
+      "rows": [
+        [
+          1232,
+          50210.0,
+          40.75,
+          16.0,
+          290.0
+        ]
+      ]
+    },
+    {
       "type": "chart",
-      "title": "Revenue by Source",
-      "content": "Memberships dominate revenue generation, which reflects the studio's subscription-first model \u2014 this is a healthy sign of recurring, predictable income. However, a heavy reliance on a single source means any membership churn will have an outsized impact on the bottom line. Diversifying revenue through class pack bookings and retail products can create a more resilient mix. Watch the booking and product slices closely; growth there signals upsell effectiveness.",
+      "title": "Revenue Breakdown by Source",
       "chart_type": "donut",
+      "content": "Breaking revenue down by source reveals which product lines are carrying the business. Memberships typically anchor recurring revenue, while bookings and products reflect transactional activity. If memberships are underrepresented, it may signal churn risk or missed upsell opportunities; an oversized share from one-off bookings suggests the studio has room to convert more drop-ins into members.",
       "sql": "SELECT purchasable_type AS source, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY purchasable_type ORDER BY revenue DESC",
       "label_column": "source",
       "value_column": "revenue",
@@ -26,9 +48,14 @@
             "hole": 0.6,
             "marker": {
               "colors": [
-                "rgba(4,152,224,0.9)",
-                "rgba(4,152,224,0.5)",
-                "rgba(4,152,224,0.2)"
+                "#0498e0",
+                "rgba(16,185,129,0.95)",
+                "rgba(139,92,246,0.95)",
+                "rgba(254,89,21,0.95)",
+                "rgba(245,158,11,0.95)",
+                "rgba(236,72,153,0.95)",
+                "rgba(6,182,212,0.95)",
+                "rgba(142,36,170,0.95)"
               ]
             },
             "textinfo": "none"
@@ -54,11 +81,11 @@
     {
       "type": "chart",
       "title": "Daily Revenue Trends",
-      "content": "Daily revenue over this period reveals whether the studio has consistent week-over-week billing cycles or is dependent on spikes from promotions and new sign-ups. Flat or declining days mid-period can indicate a gap between renewal billing dates, while sharp peaks often correspond to campaign launches or class pack purchases. Smoothing out these troughs \u2014 through auto-renewal reminders or mid-month promotions \u2014 can meaningfully lift average daily revenue. Use this view to time any future promotional pushes to the historically weaker days.",
       "chart_type": "line",
-      "sql": "SELECT strftime('%Y-%m-%d', created_at) AS day, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY day ORDER BY day",
+      "content": "Daily revenue trends expose volatility, peak days, and any prolonged dips across the 30-day window. Consistent peaks on certain days may correlate with popular class schedules or promotions, while troughs can point to scheduling gaps or demand shortfalls. Identifying these patterns helps the studio plan flash promotions or targeted communications to smooth out low-revenue days.",
+      "sql": "SELECT day, ROUND(SUM(amount_dollars), 2) AS daily_revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY day ORDER BY day",
       "x_column": "day",
-      "y_column": "revenue",
+      "y_column": "daily_revenue",
       "spec": {
         "data": [
           {
@@ -189,223 +216,93 @@
     },
     {
       "type": "table",
-      "title": "Revenue Breakdown by Plan / Item",
-      "content": "Breaking revenue down by named item (membership plan, class, or product) identifies which specific offerings are carrying the most financial weight. High-volume, lower-priced items (like Intro Offers) can mask whether premium plans are actually converting. If Founding Memberships and Unlimited plans are underrepresented here relative to their member counts, there may be an upgrade funnel worth investing in. This table also highlights any product or booking revenue streams that could warrant dedicated promotion.",
-      "sql": "SELECT item_name, purchasable_type AS type, COUNT(*) AS transactions, ROUND(SUM(amount_dollars), 2) AS total_revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' AND item_name IS NOT NULL AND item_name != '' GROUP BY item_name, purchasable_type ORDER BY total_revenue DESC",
+      "title": "Top Revenue-Generating Items",
+      "content": "Knowing which specific memberships, classes, or products generate the most revenue directs investment toward high-performers and highlights underutilized offerings. Items with high transaction counts but low average value may be strong volume drivers, while high-value items with few transactions represent upsell opportunities. This breakdown is essential for pricing reviews and promotional planning.",
+      "sql": "SELECT item_name, purchasable_type AS type, COUNT(payment_id) AS transactions, ROUND(SUM(amount_dollars), 2) AS total_revenue, ROUND(AVG(amount_dollars), 2) AS avg_value FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' AND item_name IS NOT NULL AND item_name != '' GROUP BY item_name, purchasable_type ORDER BY total_revenue DESC LIMIT 10",
       "columns": [
-        "Item",
+        "Item Name",
         "Type",
         "Transactions",
-        "Total Revenue ($)"
+        "Total Revenue ($)",
+        "Avg Value ($)"
       ],
       "rows": [
         [
           "Panther Power Sculpt",
           "booking",
           276,
-          9384.0
+          9384.0,
+          34.0
         ],
         [
           "Yin in Nature",
           "booking",
           220,
-          7480.0
+          7480.0,
+          34.0
         ],
         [
           "Panther Power Flow",
           "booking",
           213,
-          7242.0
+          7242.0,
+          34.0
         ],
         [
           "Wild Thing Flow",
           "booking",
           141,
-          4794.0
+          4794.0,
+          34.0
         ],
         [
           "Panther Pilates en espa\u00f1ol",
           "booking",
           135,
-          4590.0
+          4590.0,
+          34.0
         ],
         [
           "Intro Offer",
           "membership",
           60,
-          4500.0
+          4500.0,
+          75.0
         ],
         [
           "ALO + Wild Thing: Sculpted Strength",
           "booking",
           50,
-          3000.0
+          3000.0,
+          60.0
         ],
         [
           "10 Class Pack",
           "membership",
           6,
-          1740.0
+          1740.0,
+          290.0
         ],
         [
           "Unlimited / Month",
           "membership",
           7,
-          1680.0
+          1680.0,
+          240.0
         ],
         [
           "4 Classes / Month",
           "membership",
           10,
-          1100.0
-        ],
-        [
-          "ALO + Wild Thing: Elemental Power",
-          "booking",
-          17,
-          1020.0
-        ],
-        [
-          "Primal Stretch",
-          "booking",
-          28,
-          952.0
-        ],
-        [
-          "Primal Breath",
-          "booking",
-          17,
-          578.0
-        ],
-        [
-          "Primal Moves",
-          "booking",
-          13,
-          442.0
-        ],
-        [
-          "Vygor Premium Yoga Mat",
-          "product",
-          5,
-          440.0
-        ],
-        [
-          "gentle\u2014noise\u2122",
-          "booking",
-          8,
-          400.0
-        ],
-        [
-          "Reusable Water Bottle",
-          "product",
-          10,
-          280.0
-        ],
-        [
-          "Vygor Hoodie",
-          "product",
-          4,
-          272.0
-        ],
-        [
-          "Cork Yoga Block (pair)",
-          "product",
-          3,
-          96.0
-        ],
-        [
-          "Wild Thing Tank",
-          "product",
-          2,
-          84.0
-        ],
-        [
-          "Sweat Towel",
-          "product",
-          4,
-          72.0
-        ],
-        [
-          "Vygor Branded Tote",
-          "product",
-          2,
-          48.0
-        ],
-        [
-          "Recovery Tea Blend",
-          "product",
-          1,
-          16.0
-        ]
-      ]
-    },
-    {
-      "type": "table",
-      "title": "Top 10 Customers by Spend",
-      "content": "A small segment of high-value customers typically drives a disproportionate share of revenue \u2014 identifying them enables targeted retention efforts like loyalty perks or early access to new offerings. Customers appearing here with single bookings (rather than memberships) represent unconverted high-intent leads who may respond to a direct upgrade offer. Monitoring whether these top spenders hold active memberships is a quick litmus test for retention health. Any drop-off in repeat spend from this cohort should trigger an immediate re-engagement campaign.",
-      "sql": "SELECT customer_name, ROUND(SUM(amount_dollars), 2) AS total_spent, COUNT(*) AS transactions FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-04-20' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY customer_id, customer_name ORDER BY total_spent DESC LIMIT 10",
-      "columns": [
-        "Customer",
-        "Total Spent ($)",
-        "Transactions"
-      ],
-      "rows": [
-        [
-          "Joan Canny",
-          682.0,
-          14
-        ],
-        [
-          "Samantha Camara",
-          682.0,
-          14
-        ],
-        [
-          "Lilia Bush",
-          614.0,
-          12
-        ],
-        [
-          "Mario Landera",
-          612.0,
-          18
-        ],
-        [
-          "Alexandria Colindres",
-          510.0,
-          15
-        ],
-        [
-          "Yvonne Alvarez",
-          476.0,
-          14
-        ],
-        [
-          "Claudia Argueta",
-          460.0,
-          6
-        ],
-        [
-          "Tessa Brankovic",
-          444.0,
-          7
-        ],
-        [
-          "Katherine Filippetti",
-          442.0,
-          13
-        ],
-        [
-          "Juan Rubio",
-          442.0,
-          13
+          1100.0,
+          110.0
         ]
       ]
     },
     {
       "type": "text",
       "title": "Recommendations",
-      "content": "1. Reduce single-source dependency: If memberships account for the vast majority of revenue, actively promote 10 Class Packs and retail products at checkout and post-class to diversify the income mix.\n\n2. Convert Intro Offer members: With 550 members on an Intro Offer plan, the largest near-term revenue opportunity is converting these members to paid recurring plans (Unlimited, 4x/Month, Founding). A timed email sequence \u2014 sent at days 7, 14, and 21 of the intro period \u2014 typically drives the highest conversion rates.\n\n3. Smooth daily revenue volatility: Identify the low-revenue days in the daily trend and schedule promotional emails or flash sales (e.g., class pack discounts) to coincide with those windows.\n\n4. Re-engage top spenders: Reach out personally to your top 10 customers with a VIP acknowledgment or exclusive offer \u2014 retaining one high-LTV customer is worth far more than acquiring several low-spend ones.\n\n5. Track refund exposure: Ensure the 'refunded' payment status is monitored monthly; a rising refund rate against succeeded revenue is an early warning sign of dissatisfaction or billing errors."
+      "content": "1. **Shore up recurring revenue:** If memberships are not the dominant revenue source, prioritize converting frequent drop-in bookers with a targeted membership offer \u2014 even a discounted first month can shift the revenue mix toward more predictable income. 2. **Activate low-traffic days:** Use the daily trend chart to identify consistently weak days and schedule promotions, workshops, or limited-time discounts to drive bookings on those dates. 3. **Double down on top-performing items:** The highest-revenue classes and membership plans should receive more marketing visibility \u2014 feature them in emails, social posts, and the booking homepage to accelerate their contribution. 4. **Review low-volume, low-revenue items:** Items that appear in the bottom of the revenue table may be candidates for repricing, bundling, or discontinuation to simplify the offering and reduce operational overhead."
     }
   ]
 }

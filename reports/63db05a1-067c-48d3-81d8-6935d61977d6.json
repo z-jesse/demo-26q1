@@ -3,17 +3,17 @@
   "sections": [
     {
       "type": "text",
-      "title": "Narrative Summary: Week at a Glance",
-      "content": "The week of May 13\u201320, 2026 provides a snapshot of the studio's core health across three pillars: revenue, class attendance, and membership composition. With the Intro Offer plan dominating the membership base, the studio is in a high-acquisition phase, meaning conversion of trial members to paid recurring plans is the single biggest lever for sustainable growth. Class attendance patterns will reveal whether engagement is concentrated on specific days, informing scheduling and instructor allocation decisions. Together, these three signals paint a clear picture of where momentum is building and where attention is needed."
+      "title": "Narrative Overview: May 13\u201320, 2026",
+      "content": "This report covers one full week of studio activity across revenue, class attendance, and membership health. The sections below highlight daily trends, demand patterns, and membership plan distribution \u2014 each with a focused takeaway and actionable guidance. Use this as your weekly pulse check to catch early signals before they compound into larger issues."
     },
     {
       "type": "chart",
-      "title": "Daily Revenue (May 13\u201320, 2026)",
+      "title": "Daily Revenue Trend",
       "chart_type": "line",
-      "sql": "SELECT strftime('%Y-%m-%d', created_at) AS day, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND strftime('%Y-%m-%d', created_at) >= '2026-05-13' AND strftime('%Y-%m-%d', created_at) <= '2026-05-20' GROUP BY day ORDER BY day",
+      "sql": "SELECT day, ROUND(SUM(amount_dollars), 2) AS revenue FROM vw_revenue WHERE status = 'succeeded' AND day >= '2026-05-13' AND day <= '2026-05-20' GROUP BY day ORDER BY day",
       "x_column": "day",
       "y_column": "revenue",
-      "content": "Daily revenue fluctuations over this period reveal which days drive disproportionate income \u2014 often tied to membership renewals or class pack purchases. Spikes on particular days may correspond to scheduled renewal cycles rather than organic purchasing, which is worth cross-referencing with the membership plan distribution. Flat or low-revenue days are opportunities to introduce promotions or targeted email campaigns to drive same-day purchases.",
+      "content": "Daily revenue fluctuations over a single week often reveal which days drive disproportionate income \u2014 typically tied to peak class schedules or promotional activity. Flat or dipping mid-week days are a common pattern in studios and represent an opportunity to introduce targeted offers or off-peak incentives. If a specific day significantly outperforms others, investigate whether that correlates with a popular instructor or class type to replicate the conditions.",
       "spec": {
         "data": [
           {
@@ -98,12 +98,12 @@
     },
     {
       "type": "chart",
-      "title": "Daily Class Attendance Visits (May 13\u201320, 2026)",
+      "title": "Daily Class Attendance (Check-Ins)",
       "chart_type": "bar",
       "sql": "SELECT strftime('%Y-%m-%d', start_at) AS day, COUNT(*) AS visits FROM vw_class_attendance WHERE status = 'confirmed' AND checked_in_at IS NOT NULL AND strftime('%Y-%m-%d', start_at) >= '2026-05-13' AND strftime('%Y-%m-%d', start_at) <= '2026-05-20' GROUP BY day ORDER BY day",
       "x_column": "day",
       "y_column": "visits",
-      "content": "Attendance volume by day highlights the studio's peak engagement windows and exposes under-utilized days in the schedule. A consistent mid-week dip, for example, signals an opportunity to add programming or incentivize attendance with challenges or workshops. Strong weekend numbers relative to weekdays may also indicate a client base with 9-to-5 schedules, which could inform when to introduce new class formats or promotional offers.",
+      "content": "Attendance volume across the week shows which days your floor is busiest and where capacity may be underutilized. Mismatches between high-attendance days and revenue (seen in the chart above) can indicate heavy membership redemption rather than pay-per-class bookings \u2014 worth monitoring for revenue mix balance. Low-attendance days are prime candidates for promotional class drops, workshop pilots, or instructor-led community events to build habit and fill capacity.",
       "spec": {
         "data": [
           {
@@ -175,7 +175,7 @@
       "sql": "SELECT plan_name, COUNT(*) AS member_count FROM vw_memberships WHERE state = 'active' GROUP BY plan_name ORDER BY member_count DESC",
       "label_column": "plan_name",
       "value_column": "member_count",
-      "content": "The membership mix tells the story of the studio's revenue durability. A base heavily weighted toward Intro Offers signals strong top-of-funnel acquisition, but limited long-term revenue predictability \u2014 intro members typically churn or convert within 30\u201360 days. The relative share of recurring plans like Unlimited/Month and Founding Membership represents the studio's most stable revenue core, and growing that slice should be a strategic priority. Understanding this distribution helps set realistic conversion targets and shapes which plan to promote next.",
+      "content": "The distribution of active members across plans reveals which tiers your clients gravitate toward and where your recurring revenue base is concentrated. Over-reliance on a single low-cost plan can cap revenue growth even as headcount grows \u2014 a sign to consider upsell campaigns toward higher-tier or unlimited plans. If premium plans represent a small slice, consider a limited-time upgrade promotion or adding perks (guest passes, priority booking) to make the step-up feel worthwhile.",
       "spec": {
         "data": [
           {
@@ -201,9 +201,14 @@
             "hole": 0.6,
             "marker": {
               "colors": [
-                "rgba(4,152,224,0.9)",
-                "rgba(4,152,224,0.5)",
-                "rgba(4,152,224,0.2)"
+                "#0498e0",
+                "rgba(16,185,129,0.95)",
+                "rgba(139,92,246,0.95)",
+                "rgba(254,89,21,0.95)",
+                "rgba(245,158,11,0.95)",
+                "rgba(236,72,153,0.95)",
+                "rgba(6,182,212,0.95)",
+                "rgba(142,36,170,0.95)"
               ]
             },
             "textinfo": "none"
@@ -229,7 +234,7 @@
     {
       "type": "text",
       "title": "Recommendations",
-      "content": "1. **Convert Intro Offer members aggressively.** With Intro Offers comprising the vast majority of active memberships, implement a timed nurture sequence \u2014 emails, in-studio conversations, and a limited-time upgrade incentive \u2014 timed to fire before the intro period expires. 2. **Capitalize on high-attendance days.** Use peak attendance days identified in the bar chart to schedule workshops, retail promotions, or upsell conversations, maximizing revenue-per-visit on days when foot traffic is already high. 3. **Stimulate low-revenue days.** For days where both attendance and revenue are weak, consider flash promotions, bring-a-friend offers, or class challenges to build habit and fill capacity. 4. **Grow recurring plan share.** Prioritize marketing the Unlimited/Month and Founding Membership tiers to Intro Offer graduates \u2014 these members already know the studio and are most likely to convert with a well-timed offer."
+      "content": "1. **Boost mid-week revenue**: Identify the lowest-revenue days from the daily trend and schedule a flash promotion, drop-in special, or new class format to stimulate demand. 2. **Leverage peak attendance days**: Cross-reference your highest check-in days with revenue \u2014 if attendance is high but revenue isn't, introduce upsell touchpoints (retail, add-ons, workshops) at those peak moments. 3. **Drive membership upsells**: If lower-tier plans dominate the distribution, launch a targeted email campaign to members on entry plans highlighting the value of upgrading \u2014 even a 10\u201315% shift to a higher plan meaningfully improves MRR. 4. **Monitor weekly trends consistently**: One week is a snapshot; set a recurring weekly review cadence using this same report structure to spot trend changes early, especially around instructor availability and class schedule shifts."
     }
   ]
 }
