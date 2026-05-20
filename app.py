@@ -1076,6 +1076,7 @@ REPORT_TOOL = {
         },
         "required": ["sections"],
     },
+    "cache_control": {"type": "ephemeral"},
 }
 
 
@@ -1233,7 +1234,7 @@ def generate_report(report_id):
         msg = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=8192,
-            system=[{"type": "text", "text": REPORT_SYSTEM_PROMPT + _ANALYTICS_SYSTEM_SUFFIX}],
+            system=[{"type": "text", "text": REPORT_SYSTEM_PROMPT + _ANALYTICS_SYSTEM_SUFFIX, "cache_control": {"type": "ephemeral"}}],
             tools=[REPORT_TOOL],
             tool_choice={"type": "tool", "name": "build_report"},
             messages=[{"role": "user", "content": prompt}],
