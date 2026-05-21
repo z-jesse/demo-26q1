@@ -1370,8 +1370,11 @@ You can apply the theme on any DOM node, not just the `body`
 
   /* Sidebar */
   .sidebar {
-    @apply flex flex-col w-60 min-w-[240px] items-start gap-6 relative self-stretch;
+    @apply flex flex-col w-60 min-w-[240px] items-start gap-6 relative self-stretch overflow-y-auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .sidebar::-webkit-scrollbar { display: none; }
   .sidebar-header {
     @apply flex h-[88px] items-center gap-2.5 px-4 relative self-stretch w-full;
   }
