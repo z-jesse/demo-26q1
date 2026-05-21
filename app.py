@@ -905,9 +905,29 @@ def personalize_email():
         return jsonify({"error": "Personalization failed."}), 500
 
 
-REPORTS_FILE = os.path.join(os.path.dirname(__file__), "reports.json")
-REPORTS_DIR = os.path.join(os.path.dirname(__file__), "reports")
+_IS_VERCEL = bool(os.environ.get("VERCEL"))
+_BUNDLED_REPORTS_FILE = os.path.join(os.path.dirname(__file__), "reports.json")
+_BUNDLED_REPORTS_DIR = os.path.join(os.path.dirname(__file__), "reports")
+
+# On Vercel the project filesystem is read-only; only /tmp is writable (and
+# ephemeral per instance). Route persistence there and seed from the bundled
+# files on first read so the demo still shows the existing reports.
+REPORTS_FILE = "/tmp/reports.json" if _IS_VERCEL else _BUNDLED_REPORTS_FILE
+REPORTS_DIR = "/tmp/reports" if _IS_VERCEL else _BUNDLED_REPORTS_DIR
 os.makedirs(REPORTS_DIR, exist_ok=True)
+
+
+def _ensure_writable_storage():
+    if not _IS_VERCEL:
+        return
+    import shutil
+    if not os.path.exists(REPORTS_FILE) and os.path.exists(_BUNDLED_REPORTS_FILE):
+        shutil.copy2(_BUNDLED_REPORTS_FILE, REPORTS_FILE)
+    if os.path.isdir(_BUNDLED_REPORTS_DIR):
+        for fname in os.listdir(_BUNDLED_REPORTS_DIR):
+            dst = os.path.join(REPORTS_DIR, fname)
+            if not os.path.exists(dst):
+                shutil.copy2(os.path.join(_BUNDLED_REPORTS_DIR, fname), dst)
 
 
 def resolve_dates(date_range_str):
@@ -949,6 +969,7 @@ def resolve_dates(date_range_str):
 
 
 def _read_reports():
+    _ensure_writable_storage()
     try:
         with open(REPORTS_FILE, "r", encoding="utf-8") as f:
             reports = json.load(f)
@@ -992,6 +1013,7 @@ def _write_reports(reports):
 
 
 def _read_report_content(report_id):
+    _ensure_writable_storage()
     path = os.path.join(REPORTS_DIR, f"{report_id}.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
