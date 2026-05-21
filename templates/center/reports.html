@@ -88,6 +88,41 @@
   .rpt-skeleton-table-cell:last-child {
     margin-right: 0;
   }
+
+  /* Format Selection Cards */
+  .rpt-format-card-input {
+    display: none;
+  }
+  .rpt-format-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rpt-format-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .rpt-format-card-input:checked + .rpt-format-card {
+    border-color: var(--colors-primary-default);
+    background: rgba(108, 92, 231, 0.15);
+    box-shadow: 0 0 12px rgba(108, 92, 231, 0.2);
+  }
+  .rpt-format-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .rpt-format-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.4;
+  }
 </style>
 <div class="classes-view" data-colors-mode="dark">
 
@@ -148,6 +183,14 @@
             <input id="rpt-sp-name" type="text"
               style="background:rgba(41,40,39,1);border:1px solid rgba(61,61,61,1);border-radius:8px;color:#fff;font-family:Figtree;font-size:14px;padding:8px 12px;width:100%;outline:none;transition:border-color .2s"
               onfocus="this.style.borderColor='rgba(204,195,149,0.6)'" onblur="this.style.borderColor='rgba(61,61,61,1)'" />
+          </div>
+
+          <!-- Report Type -->
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(122,122,122,1)">Report Type</label>
+            <div id="rpt-sp-type-badge" style="display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;font-family:Figtree;font-size:13px;font-weight:600;letter-spacing:.02em;width:fit-content;user-select:none">
+              <span id="rpt-sp-type-text">—</span>
+            </div>
           </div>
 
           <!-- Date Range -->
@@ -225,6 +268,29 @@
               <input id="rpt-f-name" type="text" placeholder="e.g. Monthly Revenue Summary" class="bg-transparent border-none text-white w-full outline-none" />
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Report Format Section -->
+      <div class="form-section">
+        <h3 class="typography-body-lg font-bold text-[var(--colors-text-strong)]">Report Format</h3>
+        <div class="flex flex-col md:flex-row gap-4 w-full mt-2">
+          <!-- Card for Document Style -->
+          <label class="flex-1 cursor-pointer select-none">
+            <input type="radio" name="rpt-f-type" value="document" checked class="rpt-format-card-input" />
+            <div class="rpt-format-card">
+              <span class="rpt-format-title">Document Style</span>
+              <span class="rpt-format-desc">Narrative summaries, rich charts, and structured chapters. Ideal for visual business reviews.</span>
+            </div>
+          </label>
+          <!-- Card for CSV Style -->
+          <label class="flex-1 cursor-pointer select-none">
+            <input type="radio" name="rpt-f-type" value="csv" class="rpt-format-card-input" />
+            <div class="rpt-format-card">
+              <span class="rpt-format-title">CSV / Table Style</span>
+              <span class="rpt-format-desc">Deep single-table row export. Generates robust database queries, preview tables, and instant CSV downloads.</span>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -326,8 +392,11 @@
     }
     tbody.innerHTML = reports.map(function (r) {
       var range = r.start && r.end ? r.start + " – " + r.end : r.start || r.end || "—";
+      var typeBadge = r.type === "csv"
+        ? ' <span style="display:inline-block; font-size:10px; font-weight:700; background:rgba(204,195,149,0.15); border:1px solid rgba(204,195,149,0.35); color:rgba(204,195,149,1); border-radius:4px; padding:1px 6px; margin-left:8px; vertical-align:middle; text-transform:uppercase">CSV</span>'
+        : ' <span style="display:inline-block; font-size:10px; font-weight:700; background:rgba(108,92,231,0.15); border:1px solid rgba(108,92,231,0.35); color:rgba(108,92,231,1); border-radius:4px; padding:1px 6px; margin-left:8px; vertical-align:middle; text-transform:uppercase">DOC</span>';
       return '<tr class="data-table__row" style="cursor:pointer" onclick="rptShowDetail(\'' + r.id + '\')">'
-        + '<td class="data-table__cell">' + esc(r.name) + '</td>'
+        + '<td class="data-table__cell">' + esc(r.name) + typeBadge + '</td>'
         + '<td class="data-table__cell">' + esc(range) + '</td>'
         + '<td class="data-table__cell">' + esc(r.last_run) + '</td>'
         + '<td class="data-table__cell data-table__cell--actions">'
@@ -395,8 +464,32 @@
 
   function populateDetailPanel(r) {
     _detailReport = r;
-    document.getElementById("rpt-detail-title").textContent = r.name;
+    
+    var typeBadgeHtml = "";
+    var badgeText = document.getElementById("rpt-sp-type-text");
+    var badgeEl = document.getElementById("rpt-sp-type-badge");
+    
+    if (r.type === "csv") {
+      typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(204,195,149,0.15); border:1px solid rgba(204,195,149,0.35); color:rgba(204,195,149,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">CSV Report</span>';
+      if (badgeText && badgeEl) {
+        badgeEl.style.background = "rgba(204,195,149,0.15)";
+        badgeEl.style.border = "1px solid rgba(204,195,149,0.35)";
+        badgeEl.style.color = "rgba(204,195,149,1)";
+        badgeText.textContent = "CSV / TABLE";
+      }
+    } else {
+      typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(108,92,231,0.15); border:1px solid rgba(108,92,231,0.35); color:rgba(108,92,231,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">Document Report</span>';
+      if (badgeText && badgeEl) {
+        badgeEl.style.background = "rgba(108,92,231,0.15)";
+        badgeEl.style.border = "1px solid rgba(108,92,231,0.35)";
+        badgeEl.style.color = "rgba(108,92,231,1)";
+        badgeText.textContent = "DOCUMENT STYLE";
+      }
+    }
+
+    document.getElementById("rpt-detail-title").innerHTML = esc(r.name) + typeBadgeHtml;
     document.getElementById("rpt-detail-lastrun").textContent = r.last_run || "—";
+    
     // Populate side panel fields
     document.getElementById("rpt-sp-name").value   = r.name  || "";
     document.getElementById("rpt-sp-range").value  = r.date_range || "last_30_days";
@@ -409,11 +502,19 @@
     fetch("/api/reports/" + id + "/content")
       .then(function (r) { return r.json(); })
       .then(function (content) {
-        var sections = content.sections || [];
-        if (!sections.length) {
-          area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">No report generated yet. Click "Regenerate Report" to generate.</div>';
+        if (_detailReport.type === "csv") {
+          if (!content.csv_report) {
+            area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">No CSV report generated yet. Click "Regenerate Report" to generate.</div>';
+          } else {
+            renderCSVReport(content.csv_report);
+          }
         } else {
-          renderReportSections(sections);
+          var sections = content.sections || [];
+          if (!sections.length) {
+            area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">No report generated yet. Click "Regenerate Report" to generate.</div>';
+          } else {
+            renderReportSections(sections);
+          }
         }
       })
       .catch(function () {
@@ -461,7 +562,14 @@
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (saved) {
         _detailReport = saved;
-        document.getElementById("rpt-detail-title").textContent = saved.name;
+        
+        var typeBadgeHtml = "";
+        if (saved.type === "csv") {
+          typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(204,195,149,0.15); border:1px solid rgba(204,195,149,0.35); color:rgba(204,195,149,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">CSV Report</span>';
+        } else {
+          typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(108,92,231,0.15); border:1px solid rgba(108,92,231,0.35); color:rgba(108,92,231,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">Document Report</span>';
+        }
+        document.getElementById("rpt-detail-title").innerHTML = esc(saved.name) + typeBadgeHtml;
       })
       .catch(function () { alert("Failed to save changes."); });
   };
@@ -481,7 +589,14 @@
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (saved) {
         _detailReport = saved;
-        document.getElementById("rpt-detail-title").textContent = saved.name;
+        
+        var typeBadgeHtml = "";
+        if (saved.type === "csv") {
+          typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(204,195,149,0.15); border:1px solid rgba(204,195,149,0.35); color:rgba(204,195,149,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">CSV Report</span>';
+        } else {
+          typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(108,92,231,0.15); border:1px solid rgba(108,92,231,0.35); color:rgba(108,92,231,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">Document Report</span>';
+        }
+        document.getElementById("rpt-detail-title").innerHTML = esc(saved.name) + typeBadgeHtml;
         area.innerHTML = rptGetSkeletonHTML(saved.name);
         return fetch("/api/reports/" + saved.id + "/generate", { method: "POST" });
       })
@@ -491,11 +606,171 @@
           document.getElementById("rpt-detail-lastrun").textContent = content.generated_at;
           _detailReport.last_run = content.generated_at;
         }
-        renderReportSections(content.sections || []);
+        if (_detailReport.type === "csv") {
+          renderCSVReport(content.csv_report || {});
+        } else {
+          renderReportSections(content.sections || []);
+        }
       })
       .catch(function () {
         area.innerHTML = '<div style="color:#e05252;font-size:14px;text-align:center;padding:48px 0">Failed to generate report. Please try again.</div>';
       });
+  };
+
+  // ── CSV Rendering and Download ──────────────────────────────
+  function renderCSVReport(csvReport) {
+    var area = document.getElementById("rpt-content-area");
+    if (!csvReport || csvReport.error) {
+      var errMsg = csvReport ? csvReport.error : "Unknown error generating CSV report.";
+      area.innerHTML = '<div style="margin-bottom:28px">'
+        + '<h3 style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:rgba(122,122,122,1);margin-bottom:8px">CSV Compilation Error</h3>'
+        + '<div style="font-size:13px;color:#e05252;background:rgba(224,82,82,0.08);border:1px solid rgba(224,82,82,0.3);border-radius:8px;padding:16px">' + esc(errMsg) + '</div>'
+        + '</div>';
+      return;
+    }
+
+    window.rptCurrentCSVData = csvReport;
+
+    var columns = csvReport.columns || [];
+    var rows = csvReport.rows || [];
+
+    var html = "";
+
+    // 1. Premium Download Card
+    html += '<div style="background:linear-gradient(135deg, rgba(108,92,231,0.12) 0%, rgba(204,195,149,0.04) 100%); border:1px solid rgba(108,92,231,0.25); border-radius:16px; padding:24px; margin-bottom:32px; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:20px; box-shadow:0 8px 32px rgba(0,0,0,0.15)">';
+    html += '  <div style="flex:1">';
+    html += '    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">';
+    html += '      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2ed573; box-shadow: 0 0 8px #2ed573"></span>';
+    html += '      <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#2ed573">Ready for Export</span>';
+    html += '    </div>';
+    html += '    <h3 style="font-size:18px; font-weight:700; color:#fff; margin:0 0 6px 0">' + esc(csvReport.title || "Data Export") + '</h3>';
+    html += '    <p style="font-size:13px; color:rgba(255,255,255,0.6); margin:0">' + rows.length + ' records compiled. Table format is ready for Excel or Google Sheets.</p>';
+    html += '  </div>';
+    html += '  <button type="button" onclick="rptDownloadCurrentCSV()" style="display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:12px 24px; background:var(--colors-primary-default); border:none; border-radius:10px; color:#fff; font-family:Figtree; font-size:14px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow: 0 4px 14px rgba(108,92,231,0.4)" onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 6px 20px rgba(108,92,231,0.6)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'0 4px 14px rgba(108,92,231,0.4)\'">';
+    html += '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    html += '    Download CSV';
+    html += '  </button>';
+    html += '</div>';
+
+    // 2. Preview Table Grid
+    html += '<div style="margin-bottom:32px">';
+    html += '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">';
+    html += '    <h4 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); margin:0">Data Preview <span style="text-transform:none; font-weight:normal; color:rgba(255,255,255,0.25)">(' + Math.min(rows.length, 50) + ' of ' + rows.length + ' rows shown)</span></h4>';
+    html += '  </div>';
+    
+    html += '  <div style="width:100%; overflow-x:auto; border:1px solid rgba(255,255,255,0.06); border-radius:12px; background:rgba(0,0,0,0.15)">';
+    html += '    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px">';
+    
+    if (columns.length) {
+      html += '      <thead>';
+      html += '        <tr style="background:rgba(255,255,255,0.02)">';
+      columns.forEach(function (col) {
+        html += '          <th style="padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); font-weight:600; border-bottom:1px solid rgba(255,255,255,0.08)">' + esc(col) + '</th>';
+      });
+      html += '        </tr>';
+      html += '      </thead>';
+    }
+    
+    html += '      <tbody>';
+    var previewRows = rows.slice(0, 50);
+    if (!previewRows.length) {
+      html += '        <tr><td colspan="' + (columns.length || 1) + '" style="padding:24px; text-align:center; color:rgba(255,255,255,0.3)">No data available in table.</td></tr>';
+    } else {
+      previewRows.forEach(function (row, rIdx) {
+        html += '        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); background:' + (rIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)') + '" class="data-table__row">';
+        row.forEach(function (cell) {
+          var val = cell == null ? "" : cell;
+          html += '          <td style="padding:12px 16px; color:#fff; font-family:Figtree; white-space:nowrap">' + esc(String(val)) + '</td>';
+        });
+        html += '        </tr>';
+      });
+    }
+    html += '      </tbody>';
+    html += '    </table>';
+    html += '  </div>';
+    html += '</div>';
+
+    // 3. Collapsible Compiled SQL Viewer
+    if (csvReport.sql) {
+      html += '<div style="margin-top:24px; border:1px solid rgba(255,255,255,0.05); border-radius:12px; overflow:hidden; background:rgba(0,0,0,0.1)">';
+      html += '  <details style="cursor:pointer" class="group">';
+      html += '    <summary style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; list-style:none; outline:none; font-size:12px; font-weight:600; color:rgba(255,255,255,0.5); user-select:none" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'rgba(255,255,255,0.5)\'">';
+      html += '      <span style="display:flex; align-items:center; gap:8px">';
+      html += '        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s" class="group-open:rotate-90"><polyline points="9 18 15 12 9 6"/></svg>';
+      html += '        <span>VIEW COMPILED SQL QUERY</span>';
+      html += '      </span>';
+      html += '      <span style="font-size:10px; font-family:monospace; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:4px; padding:2px 6px">SQLITE</span>';
+      html += '    </summary>';
+      html += '    <div style="padding:0 20px 20px 20px; cursor:default">';
+      html += '      <div style="position:relative">';
+      html += '        <pre style="background:rgba(20,20,20,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:16px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; color:#e0c395; line-height:1.5; overflow-x:auto; margin:0">' + esc(csvReport.sql) + '</pre>';
+      html += '        <button type="button" onclick="rptCopySQL(this)" style="position:absolute; right:10px; top:10px; padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:11px; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">Copy SQL</button>';
+      html += '      </div>';
+      html += '    </div>';
+      html += '  </details>';
+      html += '</div>';
+    }
+
+    area.innerHTML = html;
+  }
+
+  window.rptCopySQL = function (btn) {
+    if (!window.rptCurrentCSVData || !window.rptCurrentCSVData.sql) return;
+    navigator.clipboard.writeText(window.rptCurrentCSVData.sql)
+      .then(function () {
+        var originalText = btn.textContent;
+        btn.textContent = "Copied!";
+        btn.style.background = "rgba(46, 213, 115, 0.2)";
+        btn.style.borderColor = "rgba(46, 213, 115, 0.4)";
+        setTimeout(function () {
+          btn.textContent = originalText;
+          btn.style.background = "rgba(255,255,255,0.05)";
+          btn.style.borderColor = "rgba(255,255,255,0.1)";
+        }, 2000);
+      });
+  };
+
+  window.rptDownloadCurrentCSV = function () {
+    var csvReport = window.rptCurrentCSVData;
+    if (!csvReport || !csvReport.rows) return;
+
+    var columns = csvReport.columns || [];
+    var rows = csvReport.rows || [];
+
+    var csvContent = "";
+
+    function escapeCSV(val) {
+      if (val == null) return '""';
+      var str = String(val);
+      if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    if (columns.length) {
+      csvContent += columns.map(escapeCSV).join(",") + "\r\n";
+    }
+
+    rows.forEach(function (row) {
+      csvContent += row.map(escapeCSV).join(",") + "\r\n";
+    });
+
+    var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    var filename = (csvReport.title || "export")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/(^_+|_+$)/g, "") + ".csv";
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // ── Section renderer ────────────────────────────────────────
@@ -636,6 +911,7 @@
     var prompt = document.getElementById("rpt-f-prompt").value.trim();
     var range  = document.getElementById("rpt-f-range").value;
     var errEl  = document.getElementById("rpt-form-error");
+    var type   = document.querySelector('input[name="rpt-f-type"]:checked').value;
 
     if (!name) {
       errEl.textContent = "Report name is required.";
@@ -647,7 +923,7 @@
     fetch("/api/reports", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name, type: "", prompt: prompt, date_range: range }),
+      body: JSON.stringify({ name: name, type: type, prompt: prompt, date_range: range }),
     })
       .then(function (r) { if (!r.ok) throw new Error("Server error"); return r.json(); })
       .then(function (saved) {
@@ -662,8 +938,13 @@
       .then(function (content) {
         if (content.generated_at) {
           document.getElementById("rpt-detail-lastrun").textContent = content.generated_at;
+          _detailReport.last_run = content.generated_at;
         }
-        renderReportSections(content.sections || []);
+        if (_detailReport.type === "csv") {
+          renderCSVReport(content.csv_report || {});
+        } else {
+          renderReportSections(content.sections || []);
+        }
       })
       .catch(function () {
         document.getElementById("rpt-form-error").textContent = "Something went wrong. Please try again.";
@@ -677,6 +958,10 @@
     document.getElementById("rpt-f-range").value = "last_30_days";
     document.getElementById("rpt-f-prompt").value = "";
     document.getElementById("rpt-form-error").style.display = "none";
+    var radios = document.getElementsByName("rpt-f-type");
+    if (radios.length) {
+      radios[0].checked = true;
+    }
   }
 
   function esc(s) {

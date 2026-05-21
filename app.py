@@ -957,6 +957,10 @@ def _read_reports():
 
     modified = False
     for r in reports:
+        if "type" not in r or not r["type"]:
+            r["type"] = "document"
+            modified = True
+
         if "date_range" not in r:
             start = r.get("start", "")
             end = r.get("end", "")
@@ -1085,6 +1089,34 @@ REPORT_TOOL = {
 }
 
 
+CSV_REPORT_TOOL = {
+    "name": "build_csv_report",
+    "description": (
+        "Build a structured CSV/Table report as a single high-fidelity data table. "
+        "Formulate a SQLite SELECT statement against the vw_* views that matches "
+        "the user's request. Focus on yielding comprehensive row-level detail "
+        "suitable for Excel/CSV exports."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "title": {"type": "string", "description": "Descriptive title for the CSV export."},
+            "sql": {
+                "type": "string",
+                "description": "SQLite SELECT query against one of Vygor's vw_* views."
+            },
+            "columns": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Optional clean display headers for the table columns."
+            }
+        },
+        "required": ["title", "sql"]
+    },
+    "cache_control": {"type": "ephemeral"},
+}
+
+
 @app.route('/api/reports', methods=['GET'])
 def list_reports():
     return jsonify(_read_reports())
@@ -1098,7 +1130,7 @@ def create_report():
     report = {
         "id": str(uuid.uuid4()),
         "name": (data.get("name") or "").strip(),
-        "type": (data.get("type") or "").strip(),
+        "type": (data.get("type") or "document").strip(),
         "date_range": date_range_val,
         "start": start_date,
         "end": end_date,
@@ -1210,38 +1242,58 @@ def generate_report(report_id):
         date_range = f" starting {report['start']}"
 
     custom_prompt = (report.get("prompt") or "").strip()
-    if custom_prompt:
-        prompt = (
-            f"Build a focused report based on these instructions:\n"
-            f"'{custom_prompt}'\n\n"
-            f"Report Title: '{report['name']}'{date_range}.\n"
-            f"Aim for 3–5 category sections. Each section should have a descriptive "
-            f"title, a short analysis paragraph in `content` (2–4 sentences of "
-            f"interpretation, not restated numbers), and — when useful — a supporting "
-            f"chart or table. End with a Recommendations section. No standalone "
-            f"summary section; the title above already frames the report."
-        )
+    is_csv_report = (report.get("type") == "csv")
+
+    if is_csv_report:
+        if custom_prompt:
+            prompt = (
+                f"Build a structured CSV/Table report as a single data table based on these instructions:\n"
+                f"'{custom_prompt}'\n\n"
+                f"Report Title: '{report['name']}'{date_range}.\n"
+                f"Focus on yielding detailed, comprehensive row-level information with clean SQLite queries against Vygor's vw_* views."
+            )
+        else:
+            prompt = (
+                f"Generate a structured CSV/Table report as a single data table titled '{report['name']}'{date_range} "
+                f"for Vygor Test yoga studio.\n"
+                f"Focus on yielding detailed, comprehensive row-level columns suitable for tabular analysis."
+            )
     else:
-        prompt = (
-            f"Generate a focused business report titled '{report['name']}'{date_range} "
-            f"for Vygor Test yoga studio.\n\n"
-            f"Aim for 3–5 category sections, each with:\n"
-            f"- A descriptive title (e.g. 'Revenue by Source', 'Class Attendance Trends').\n"
-            f"- A short analysis paragraph in `content` — 2–4 sentences interpreting the "
-            f"  pattern, not restating numbers.\n"
-            f"- A supporting chart or table when it adds value (set `type` accordingly).\n\n"
-            f"Close with a Recommendations section (type=text) containing 2–3 concrete, "
-            f"data-driven suggestions. No standalone summary section — the title already "
-            f"frames the report."
-        )
+        if custom_prompt:
+            prompt = (
+                f"Build a focused report based on these instructions:\n"
+                f"'{custom_prompt}'\n\n"
+                f"Report Title: '{report['name']}'{date_range}.\n"
+                f"Aim for 3–5 category sections. Each section should have a descriptive "
+                f"title, a short analysis paragraph in `content` (2–4 sentences of "
+                f"interpretation, not restated numbers), and — when useful — a supporting "
+                f"chart or table. End with a Recommendations section. No standalone "
+                f"summary section; the title above already frames the report."
+            )
+        else:
+            prompt = (
+                f"Generate a focused business report titled '{report['name']}'{date_range} "
+                f"for Vygor Test yoga studio.\n\n"
+                f"Aim for 3–5 category sections, each with:\n"
+                f"- A descriptive title (e.g. 'Revenue by Source', 'Class Attendance Trends').\n"
+                f"- A short analysis paragraph in `content` — 2–4 sentences interpreting the "
+                f"  pattern, not restating numbers.\n"
+                f"- A supporting chart or table when it adds value (set `type` accordingly).\n\n"
+                f"Close with a Recommendations section (type=text) containing 2–3 concrete, "
+                f"data-driven suggestions. No standalone summary section — the title already "
+                f"frames the report."
+            )
 
     try:
+        tools_list = [CSV_REPORT_TOOL] if is_csv_report else [REPORT_TOOL]
+        tool_choice_val = {"type": "tool", "name": "build_csv_report"} if is_csv_report else {"type": "tool", "name": "build_report"}
+
         msg = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=8192,
             system=[{"type": "text", "text": REPORT_SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
-            tools=[REPORT_TOOL],
-            tool_choice={"type": "tool", "name": "build_report"},
+            tools=tools_list,
+            tool_choice=tool_choice_val,
             messages=[{"role": "user", "content": prompt}],
         )
 
@@ -1252,19 +1304,54 @@ def generate_report(report_id):
         if not tool_block:
             return jsonify({"error": "No report generated"}), 500
 
-        sections = tool_block.input.get("sections", [])
-        resolvable = [s for s in sections if s.get("type") in ("chart", "table")]
-        if resolvable:
-            with ThreadPoolExecutor(max_workers=min(5, len(resolvable))) as pool:
-                list(pool.map(_resolve_section, resolvable))
-
         today_str = (
             date.today().strftime('%b ')
             + str(date.today().day)
             + ', '
             + date.today().strftime('%Y')
         )
-        content = {"generated_at": today_str, "sections": sections}
+
+        if is_csv_report:
+            title = tool_block.input.get("title") or report["name"]
+            sql = (tool_block.input.get("sql") or "").strip()
+            columns = tool_block.input.get("columns") or []
+            rows = []
+            err = None
+            
+            if not sql:
+                err = "No SQL query formulated by Vygor Intelligence."
+            else:
+                try:
+                    query_rows = warehouse.run_query(sql)
+                    if not query_rows:
+                        err = "Query returned no rows."
+                    else:
+                        column_keys = list(query_rows[0].keys())
+                        if not columns:
+                            columns = column_keys
+                        rows = [[r.get(k) for k in column_keys] for r in query_rows]
+                except Exception as e:
+                    err = f"Query execution failed: {e}"
+            
+            content = {
+                "generated_at": today_str,
+                "csv_report": {
+                    "title": title,
+                    "sql": sql,
+                    "columns": columns,
+                    "rows": rows,
+                    "error": err
+                }
+            }
+        else:
+            sections = tool_block.input.get("sections", [])
+            resolvable = [s for s in sections if s.get("type") in ("chart", "table")]
+            if resolvable:
+                with ThreadPoolExecutor(max_workers=min(5, len(resolvable))) as pool:
+                    list(pool.map(_resolve_section, resolvable))
+
+            content = {"generated_at": today_str, "sections": sections}
+
         _write_report_content(report_id, content)
 
         # Update last_run in the metadata index

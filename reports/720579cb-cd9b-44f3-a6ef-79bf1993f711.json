@@ -1,0 +1,94 @@
+{
+  "generated_at": "May 20, 2026",
+  "csv_report": {
+    "title": "Membership Rates \u2013 Apr 20, 2026 to May 20, 2026",
+    "sql": "SELECT\n  vm.plan_name AS membership_plan,\n  COUNT(DISTINCT vm.membership_id) AS total_members,\n  COUNT(DISTINCT CASE WHEN vm.state = 'active' THEN vm.membership_id END) AS active_members,\n  COUNT(DISTINCT CASE WHEN vm.state = 'cancelled' THEN vm.membership_id END) AS cancelled_members,\n  COUNT(b.booking_id) AS total_bookings,\n  COUNT(CASE WHEN b.status = 'confirmed' AND b.checked_in_at IS NOT NULL THEN 1 END) AS attended_bookings,\n  COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) AS cancelled_bookings,\n  COUNT(CASE WHEN b.status = 'waitlisted' THEN 1 END) AS waitlisted_bookings,\n  ROUND(\n    100.0 * COUNT(CASE WHEN b.status = 'confirmed' AND b.checked_in_at IS NOT NULL THEN 1 END)\n    / NULLIF(COUNT(b.booking_id), 0), 2\n  ) AS attendance_rate_pct,\n  ROUND(\n    1.0 * COUNT(b.booking_id)\n    / NULLIF(COUNT(DISTINCT vm.membership_id), 0), 2\n  ) AS avg_bookings_per_member,\n  ROUND(\n    1.0 * COUNT(CASE WHEN b.status = 'confirmed' AND b.checked_in_at IS NOT NULL THEN 1 END)\n    / NULLIF(COUNT(DISTINCT vm.membership_id), 0), 2\n  ) AS avg_attended_per_member,\n  ROUND(vm.plan_price_dollars, 2) AS plan_price_dollars\nFROM vw_memberships vm\nLEFT JOIN vw_class_attendance b\n  ON b.customer_id = vm.customer_id\n  AND b.paid_with_membership = 1\n  AND strftime('%Y-%m-%d', b.start_at) BETWEEN '2026-04-20' AND '2026-05-20'\nWHERE\n  strftime('%Y-%m-%d', vm.activated_at) <= '2026-05-20'\n  AND (vm.cancelled_at IS NULL OR strftime('%Y-%m-%d', vm.cancelled_at) >= '2026-04-20')\nGROUP BY vm.plan_name, vm.plan_price_dollars\nORDER BY total_bookings DESC",
+    "columns": [
+      "Membership Plan",
+      "Total Members",
+      "Active Members",
+      "Cancelled Members",
+      "Total Bookings",
+      "Attended Bookings",
+      "Cancelled Bookings",
+      "Waitlisted Bookings",
+      "Attendance Rate (%)",
+      "Avg Bookings / Member",
+      "Avg Attended / Member",
+      "Plan Price ($)"
+    ],
+    "rows": [
+      [
+        "10 Class Pack",
+        39,
+        39,
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        0.0,
+        0.0,
+        290.0
+      ],
+      [
+        "4 Classes / Month",
+        36,
+        31,
+        5,
+        0,
+        0,
+        0,
+        0,
+        null,
+        0.0,
+        0.0,
+        110.0
+      ],
+      [
+        "Founding Membership",
+        33,
+        27,
+        6,
+        0,
+        0,
+        0,
+        0,
+        null,
+        0.0,
+        0.0,
+        200.0
+      ],
+      [
+        "Intro Offer",
+        550,
+        550,
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        0.0,
+        0.0,
+        75.0
+      ],
+      [
+        "Unlimited / Month",
+        38,
+        35,
+        3,
+        0,
+        0,
+        0,
+        0,
+        null,
+        0.0,
+        0.0,
+        240.0
+      ]
+    ],
+    "error": null
+  }
+}
