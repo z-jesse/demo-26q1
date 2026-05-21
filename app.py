@@ -1428,7 +1428,7 @@ def run_report_query(report_id):
     else:
         sql = (csv_block.get("sql") or "").strip()
         if not sql:
-            return jsonify({"error": "No query yet — refine with AI first."}), 400
+            return jsonify({"error": "No report yet — click Refine first."}), 400
         result = _run_sql_block(sql, display_columns=csv_block.get("columns"))
         csv_block["columns"] = result["columns"]
         csv_block["rows"] = result["rows"]
