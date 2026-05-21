@@ -123,6 +123,17 @@
     color: rgba(255, 255, 255, 0.5);
     line-height: 1.4;
   }
+
+  /* ── Save Changes: dirty state (unsaved SQL draft) ── */
+  .rpt-save-dirty {
+    background: rgba(204,195,149,0.15) !important;
+    border-color: rgba(204,195,149,0.6) !important;
+    color: rgba(204,195,149,1) !important;
+  }
+  .rpt-save-dirty:hover {
+    background: rgba(204,195,149,0.25) !important;
+    border-color: rgba(204,195,149,0.8) !important;
+  }
 </style>
 <div class="classes-view" data-colors-mode="dark">
 
@@ -199,7 +210,8 @@
             <div style="position:relative">
               <select id="rpt-sp-range"
                 style="background:rgba(41,40,39,1);border:1px solid rgba(61,61,61,1);border-radius:8px;color:#fff;font-family:Figtree;font-size:14px;padding:8px 12px;width:100%;outline:none;transition:border-color .2s;-webkit-appearance:none;appearance:none"
-                onfocus="this.style.borderColor='rgba(204,195,149,0.6)'" onblur="this.style.borderColor='rgba(61,61,61,1)'">
+                onfocus="this.style.borderColor='rgba(204,195,149,0.6)'" onblur="this.style.borderColor='rgba(61,61,61,1)'"
+                onchange="rptOnDateRangeChange()">
                 <option value="last_7_days" style="background:#1a1a1a">Last 7 days</option>
                 <option value="last_30_days" style="background:#1a1a1a">Last 30 days</option>
                 <option value="last_90_days" style="background:#1a1a1a">Last 90 days</option>
@@ -216,28 +228,57 @@
 
           <!-- Custom Prompt -->
           <div style="display:flex;flex-direction:column;gap:6px">
-            <label style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(122,122,122,1)">Prompt</label>
+            <label id="rpt-sp-prompt-label" style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(122,122,122,1)">Prompt</label>
             <textarea id="rpt-sp-prompt" rows="5" placeholder="Describe what you want this report to show…"
               style="background:rgba(41,40,39,1);border:1px solid rgba(61,61,61,1);border-radius:8px;color:#fff;font-family:Figtree;font-size:13px;line-height:1.5;padding:8px 12px;width:100%;outline:none;resize:vertical;transition:border-color .2s"
               onfocus="this.style.borderColor='rgba(204,195,149,0.6)'" onblur="this.style.borderColor='rgba(61,61,61,1)'"></textarea>
           </div>
 
-          <!-- Regenerate button -->
-          <button type="button" onclick="rptSaveAndRegenerate()"
-            style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;background:rgba(204,195,149,0.15);border:1px solid rgba(204,195,149,0.35);border-radius:10px;color:rgba(204,195,149,1);font-family:Figtree;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s;width:100%"
-            onmouseover="this.style.background='rgba(204,195,149,0.25)';this.style.borderColor='rgba(204,195,149,0.6)'"
-            onmouseout="this.style.background='rgba(204,195,149,0.15)';this.style.borderColor='rgba(204,195,149,0.35)'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Regenerate Report
-          </button>
+          <!-- Buttons: document report variant -->
+          <div id="rpt-sp-buttons-doc" style="display:flex;flex-direction:column;gap:10px">
+            <button type="button" onclick="rptSaveAndRegenerate()"
+              style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;background:rgba(204,195,149,0.15);border:1px solid rgba(204,195,149,0.35);border-radius:10px;color:rgba(204,195,149,1);font-family:Figtree;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s;width:100%"
+              onmouseover="this.style.background='rgba(204,195,149,0.25)';this.style.borderColor='rgba(204,195,149,0.6)'"
+              onmouseout="this.style.background='rgba(204,195,149,0.15)';this.style.borderColor='rgba(204,195,149,0.35)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Regenerate Report
+            </button>
+            <button type="button" onclick="rptSaveMeta()"
+              style="display:flex;align-items:center;justify-content:center;padding:8px 16px;background:transparent;border:1px solid rgba(61,61,61,1);border-radius:10px;color:rgba(122,122,122,1);font-family:Figtree;font-size:13px;cursor:pointer;transition:background .2s,border-color .2s,color .2s;width:100%"
+              onmouseover="this.style.background='rgba(61,61,61,0.5)';this.style.color='#fff'"
+              onmouseout="this.style.background='transparent';this.style.color='rgba(122,122,122,1)'">
+              Save Changes
+            </button>
+          </div>
 
-          <!-- Save metadata only -->
-          <button type="button" onclick="rptSaveMeta()"
-            style="display:flex;align-items:center;justify-content:center;padding:8px 16px;background:transparent;border:1px solid rgba(61,61,61,1);border-radius:10px;color:rgba(122,122,122,1);font-family:Figtree;font-size:13px;cursor:pointer;transition:background .2s,border-color .2s,color .2s;width:100%"
-            onmouseover="this.style.background='rgba(61,61,61,0.5)';this.style.color='#fff'"
-            onmouseout="this.style.background='transparent';this.style.color='rgba(122,122,122,1)'">
-            Save Changes
-          </button>
+          <!-- Buttons: CSV report variant (iterative refine + run) -->
+          <div id="rpt-sp-buttons-csv" style="display:none;flex-direction:column;gap:10px">
+            <button type="button" onclick="rptRefineWithAI()"
+              style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;background:rgba(204,195,149,0.15);border:1px solid rgba(204,195,149,0.35);border-radius:10px;color:rgba(204,195,149,1);font-family:Figtree;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s;width:100%"
+              onmouseover="this.style.background='rgba(204,195,149,0.25)';this.style.borderColor='rgba(204,195,149,0.6)'"
+              onmouseout="this.style.background='rgba(204,195,149,0.15)';this.style.borderColor='rgba(204,195,149,0.35)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 8.5 3 11l6.5 2.5L12 20l2.5-6.5L21 11l-6.5-2.5L12 2z"/></svg>
+              Refine with AI
+            </button>
+            <button type="button" onclick="rptRunQuery()"
+              style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:transparent;border:1px solid rgba(61,61,61,1);border-radius:10px;color:rgba(220,220,220,1);font-family:Figtree;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s,color .2s;width:100%"
+              onmouseover="this.style.background='rgba(61,61,61,0.5)';this.style.borderColor='rgba(122,122,122,1)'"
+              onmouseout="this.style.background='transparent';this.style.borderColor='rgba(61,61,61,1)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Run Query
+            </button>
+            <button type="button" id="rpt-sp-btn-undo" onclick="rptUndo()" disabled
+              style="display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;background:transparent;border:1px solid rgba(61,61,61,1);border-radius:10px;color:rgba(122,122,122,1);font-family:Figtree;font-size:13px;font-weight:600;cursor:not-allowed;opacity:0.5;transition:background .2s,border-color .2s,color .2s,opacity .2s;width:100%">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
+              Undo
+            </button>
+            <button type="button" onclick="rptSaveMeta()"
+              style="display:flex;align-items:center;justify-content:center;padding:8px 16px;background:transparent;border:1px solid rgba(61,61,61,1);border-radius:10px;color:rgba(122,122,122,1);font-family:Figtree;font-size:13px;cursor:pointer;transition:background .2s,border-color .2s,color .2s;width:100%"
+              onmouseover="this.style.background='rgba(61,61,61,0.5)';this.style.color='#fff'"
+              onmouseout="this.style.background='transparent';this.style.color='rgba(122,122,122,1)'">
+              Save Changes
+            </button>
+          </div>
 
         </div>
 
@@ -462,6 +503,74 @@
       + '</div>';
   }
 
+  function rptGetCSVSkeletonHTML() {
+    var headerWidths = ['18%','22%','15%','20%','12%','13%'];
+    var rowWidths = [
+      ['25%','30%','18%','12%','15%','10%'],
+      ['20%','35%','15%','15%','10%','15%'],
+      ['28%','25%','20%','12%','15%','10%'],
+      ['22%','32%','18%','14%','12%','12%'],
+      ['30%','28%','15%','12%','15%','10%'],
+      ['18%','38%','15%','15%','14%','10%'],
+      ['25%','30%','20%','12%','13%','10%'],
+      ['22%','30%','18%','15%','15%','10%'],
+      ['28%','25%','15%','15%','17%','10%'],
+      ['20%','35%','20%','10%','15%','10%']
+    ];
+    var html = '<div class="rpt-skeleton">';
+
+    // Top "Ready for Export" card placeholder
+    html += '<div style="background:linear-gradient(135deg, rgba(108,92,231,0.08) 0%, rgba(204,195,149,0.03) 100%); border:1px solid rgba(108,92,231,0.18); border-radius:16px; padding:24px; margin-bottom:32px; display:flex; align-items:center; justify-content:space-between; gap:20px">';
+    html += '  <div style="flex:1">';
+    html += '    <div style="height:11px; width:110px; background:rgba(255,255,255,0.10); border-radius:4px; margin-bottom:12px"></div>';
+    html += '    <div style="height:18px; width:220px; background:rgba(255,255,255,0.12); border-radius:4px; margin-bottom:10px"></div>';
+    html += '    <div style="height:11px; width:280px; background:rgba(255,255,255,0.06); border-radius:4px"></div>';
+    html += '  </div>';
+    html += '  <div style="height:42px; width:150px; background:rgba(108,92,231,0.22); border-radius:10px"></div>';
+    html += '</div>';
+
+    // Compiled Data Grid label
+    html += '<div style="height:11px; width:140px; background:rgba(255,255,255,0.10); border-radius:4px; margin-bottom:12px"></div>';
+
+    // Table frame: header row + body rows
+    html += '<div style="width:100%; border:1px solid rgba(255,255,255,0.06); border-radius:12px; background:rgba(0,0,0,0.15); overflow:hidden; margin-bottom:20px">';
+    html += '  <div style="display:flex; gap:16px; padding:14px 16px; background:rgba(20,20,20,0.95); border-bottom:1px solid rgba(255,255,255,0.08)">';
+    headerWidths.forEach(function (w) {
+      html += '<div style="height:11px; width:' + w + '; background:rgba(255,255,255,0.12); border-radius:4px"></div>';
+    });
+    html += '  </div>';
+    rowWidths.forEach(function (row) {
+      html += '  <div style="display:flex; gap:16px; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.04)">';
+      row.forEach(function (w) {
+        html += '<div style="height:11px; width:' + w + '; background:rgba(255,255,255,0.06); border-radius:4px"></div>';
+      });
+      html += '  </div>';
+    });
+    html += '</div>';
+
+    // Pagination toolbar
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; gap:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:14px 20px">';
+    html += '  <div style="height:11px; width:160px; background:rgba(255,255,255,0.06); border-radius:4px"></div>';
+    html += '  <div style="display:flex; gap:6px">';
+    html += '    <div style="height:24px; width:32px; background:rgba(255,255,255,0.06); border-radius:6px"></div>';
+    html += '    <div style="height:24px; width:32px; background:rgba(255,255,255,0.06); border-radius:6px"></div>';
+    html += '    <div style="height:24px; width:90px; background:rgba(255,255,255,0.06); border-radius:6px"></div>';
+    html += '    <div style="height:24px; width:32px; background:rgba(255,255,255,0.06); border-radius:6px"></div>';
+    html += '    <div style="height:24px; width:32px; background:rgba(255,255,255,0.06); border-radius:6px"></div>';
+    html += '  </div>';
+    html += '  <div style="height:24px; width:150px; background:rgba(255,255,255,0.06); border-radius:6px"></div>';
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
+  function rptSkeletonFor(report) {
+    return (report && report.type === "csv")
+      ? rptGetCSVSkeletonHTML()
+      : rptGetSkeletonHTML(report ? report.name : "");
+  }
+
   function populateDetailPanel(r) {
     _detailReport = r;
     
@@ -500,22 +609,41 @@
 
     document.getElementById("rpt-detail-title").innerHTML = esc(r.name) + typeBadgeHtml;
     document.getElementById("rpt-detail-lastrun").textContent = r.last_run || "—";
-    
+
     // Populate side panel fields
     document.getElementById("rpt-sp-name").value   = r.name  || "";
     document.getElementById("rpt-sp-range").value  = r.date_range || "last_30_days";
     document.getElementById("rpt-sp-prompt").value = r.prompt || "";
+
+    // Adapt prompt UI + button block to report type
+    var promptLabel = document.getElementById("rpt-sp-prompt-label");
+    var promptInput = document.getElementById("rpt-sp-prompt");
+    var btnsDoc     = document.getElementById("rpt-sp-buttons-doc");
+    var btnsCsv     = document.getElementById("rpt-sp-buttons-csv");
+    if (r.type === "csv") {
+      if (promptLabel) promptLabel.textContent = "Refine Query";
+      if (promptInput) promptInput.placeholder = "e.g. 'remove the date column' or 'group by membership tier'";
+      if (btnsDoc) btnsDoc.style.display = "none";
+      if (btnsCsv) btnsCsv.style.display = "flex";
+    } else {
+      if (promptLabel) promptLabel.textContent = "Prompt";
+      if (promptInput) promptInput.placeholder = "Describe what you want this report to show…";
+      if (btnsDoc) btnsDoc.style.display = "flex";
+      if (btnsCsv) btnsCsv.style.display = "none";
+    }
   }
 
   function loadDetailContent(id) {
     var area = document.getElementById("rpt-content-area");
-    area.innerHTML = rptGetSkeletonHTML(_detailReport ? _detailReport.name : "");
+    area.innerHTML = rptSkeletonFor(_detailReport);
     fetch("/api/reports/" + id + "/content")
       .then(function (r) { return r.json(); })
       .then(function (content) {
         if (_detailReport.type === "csv") {
-          if (!content.csv_report) {
-            area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">No CSV report generated yet. Click "Regenerate Report" to generate.</div>';
+          if (!content.csv_report || !(content.csv_report.sql || "").trim()) {
+            area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">No query yet. Enter what you want and click <strong>Refine with AI</strong> to generate one.</div>';
+            updateSaveButtonHighlight(false);
+            updateUndoButton(false);
           } else {
             renderCSVReport(content.csv_report);
           }
@@ -573,7 +701,7 @@
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (saved) {
         _detailReport = saved;
-        
+
         var typeBadgeHtml = "";
         if (saved.type === "csv") {
           typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(204,195,149,0.15); border:1px solid rgba(204,195,149,0.35); color:rgba(204,195,149,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">CSV Report</span>';
@@ -581,6 +709,15 @@
           typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(108,92,231,0.15); border:1px solid rgba(108,92,231,0.35); color:rgba(108,92,231,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">Document Report</span>';
         }
         document.getElementById("rpt-detail-title").innerHTML = esc(saved.name) + typeBadgeHtml;
+
+        // For CSV reports, also commit any pending SQL draft.
+        if (saved.type === "csv") {
+          return fetch("/api/reports/" + saved.id + "/commit", { method: "POST" })
+            .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+            .then(function (content) {
+              renderCSVReport(content.csv_report || {});
+            });
+        }
       })
       .catch(function () { alert("Failed to save changes."); });
   };
@@ -628,9 +765,136 @@
       });
   };
 
-  // ── CSV Rendering and Download ──────────────────────────────
-  function renderCSVReport(csvReport) {
+  // ── Date range change: auto-refine for CSV reports ──
+  window.rptOnDateRangeChange = function () {
+    if (!_detailReport) return;
+    if (_detailReport.type !== "csv") return;
+    // The stored SQL has the previous range's dates baked in, so we need to
+    // regenerate via the AI refine path to pick up the new range.
+    window.rptRefineWithAI();
+  };
+
+  // ── CSV: Refine with AI (save prompt + call AI to update SQL) ──
+  window.rptRefineWithAI = function () {
+    if (!_detailReport) return;
+    var payload = collectSidePanelPayload();
     var area = document.getElementById("rpt-content-area");
+    area.innerHTML = rptGetCSVSkeletonHTML();
+
+    fetch("/api/reports/" + _detailReport.id, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) { if (!r.ok) throw new Error("save failed"); return r.json(); })
+      .then(function (saved) {
+        _detailReport = saved;
+        var typeBadgeHtml = '<span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(204,195,149,0.15); border:1px solid rgba(204,195,149,0.35); color:rgba(204,195,149,1); border-radius:6px; padding:3px 10px; margin-left:12px; vertical-align:middle; text-transform:uppercase">CSV Report</span>';
+        document.getElementById("rpt-detail-title").innerHTML = esc(saved.name) + typeBadgeHtml;
+        return fetch("/api/reports/" + saved.id + "/refine", { method: "POST" });
+      })
+      .then(function (r) {
+        return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+      })
+      .then(function (res) {
+        if (!res.ok) {
+          var msg = (res.body && res.body.error) || "Failed to refine query.";
+          area.innerHTML = '<div style="color:#e05252;font-size:14px;text-align:center;padding:48px 0">' + esc(msg) + '</div>';
+          return;
+        }
+        var content = res.body;
+        if (content.generated_at) {
+          document.getElementById("rpt-detail-lastrun").textContent = content.generated_at;
+          _detailReport.last_run = content.generated_at;
+        }
+        renderCSVReport(content.csv_report || {});
+      })
+      .catch(function () {
+        area.innerHTML = '<div style="color:#e05252;font-size:14px;text-align:center;padding:48px 0">Failed to refine query. Please try again.</div>';
+      });
+  };
+
+  // ── CSV: Run Query (re-execute stored SQL, no AI) ───────────────
+  window.rptRunQuery = function () {
+    if (!_detailReport) return;
+    var area = document.getElementById("rpt-content-area");
+    area.innerHTML = rptGetCSVSkeletonHTML();
+
+    fetch("/api/reports/" + _detailReport.id + "/run", { method: "POST" })
+      .then(function (r) {
+        return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+      })
+      .then(function (res) {
+        if (!res.ok) {
+          var msg = (res.body && res.body.error) || "Failed to run query.";
+          area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">' + esc(msg) + '</div>';
+          return;
+        }
+        var content = res.body;
+        if (content.generated_at) {
+          document.getElementById("rpt-detail-lastrun").textContent = content.generated_at;
+          _detailReport.last_run = content.generated_at;
+        }
+        renderCSVReport(content.csv_report || {});
+      })
+      .catch(function () {
+        area.innerHTML = '<div style="color:#e05252;font-size:14px;text-align:center;padding:48px 0">Failed to run query. Please try again.</div>';
+      });
+  };
+
+  // ── Highlight Save Changes when CSV draft differs from saved ──
+  function updateSaveButtonHighlight(hasDraft) {
+    var block = document.getElementById("rpt-sp-buttons-csv");
+    if (!block) return;
+    var btn = block.querySelector('button[onclick="rptSaveMeta()"]');
+    if (!btn) return;
+    if (hasDraft) btn.classList.add('rpt-save-dirty');
+    else          btn.classList.remove('rpt-save-dirty');
+  }
+
+  // ── Enable/disable Undo based on draft + history availability ──
+  function updateUndoButton(canUndo) {
+    var btn = document.getElementById("rpt-sp-btn-undo");
+    if (!btn) return;
+    btn.disabled = !canUndo;
+    btn.style.opacity = canUndo ? "1" : "0.5";
+    btn.style.cursor = canUndo ? "pointer" : "not-allowed";
+    btn.style.color = canUndo ? "rgba(220,220,220,1)" : "rgba(122,122,122,1)";
+  }
+
+  // ── Undo most recent change (discard draft, else pop history) ──
+  window.rptUndo = function () {
+    if (!_detailReport) return;
+    var area = document.getElementById("rpt-content-area");
+    area.innerHTML = rptGetCSVSkeletonHTML();
+    fetch("/api/reports/" + _detailReport.id + "/undo", { method: "POST" })
+      .then(function (r) {
+        return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+      })
+      .then(function (res) {
+        if (!res.ok) {
+          var msg = (res.body && res.body.error) || "Nothing to undo.";
+          area.innerHTML = '<div style="color:rgba(122,122,122,1);font-size:14px;text-align:center;padding:48px 0">' + esc(msg) + '</div>';
+          return;
+        }
+        renderCSVReport((res.body && res.body.csv_report) || {});
+      })
+      .catch(function () {
+        area.innerHTML = '<div style="color:#e05252;font-size:14px;text-align:center;padding:48px 0">Failed to undo. Please try again.</div>';
+      });
+  };
+
+  // ── CSV Rendering and Download ──────────────────────────────
+  function renderCSVReport(rawCsvReport) {
+    var area = document.getElementById("rpt-content-area");
+    // If an unsaved AI draft exists, display it (and highlight Save Changes).
+    var draft = rawCsvReport && rawCsvReport.draft;
+    var hasDraft = !!(draft && (draft.sql || '').trim());
+    var hasHistory = !!(rawCsvReport && rawCsvReport.history && rawCsvReport.history.length);
+    updateSaveButtonHighlight(hasDraft);
+    updateUndoButton(hasDraft || hasHistory);
+    var csvReport = hasDraft ? draft : rawCsvReport;
+
     if (!csvReport || csvReport.error) {
       var errMsg = csvReport ? csvReport.error : "Unknown error generating CSV report.";
       area.innerHTML = '<div style="margin-bottom:28px">'
@@ -679,7 +943,7 @@
     html += '    <h4 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); margin:0">Compiled Data Grid</h4>';
     html += '  </div>';
     
-    html += '  <div style="width:100%; max-height:550px; overflow:auto; border:1px solid rgba(255,255,255,0.06); border-radius:12px; background:rgba(0,0,0,0.15)">';
+    html += '  <div style="width:100%; overflow-x:auto; border:1px solid rgba(255,255,255,0.06); border-radius:12px; background:rgba(0,0,0,0.15)">';
     html += '    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px">';
     
     if (columns.length) {
@@ -719,27 +983,6 @@
     html += '    </select>';
     html += '  </div>';
     html += '</div>';
-
-    // 5. Collapsible Compiled SQL Viewer
-    if (csvReport.sql) {
-      html += '<div style="margin-top:24px; border:1px solid rgba(255,255,255,0.05); border-radius:12px; overflow:hidden; background:rgba(0,0,0,0.1)">';
-      html += '  <details style="cursor:pointer" class="group">';
-      html += '    <summary style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; list-style:none; outline:none; font-size:12px; font-weight:600; color:rgba(255,255,255,0.5); user-select:none" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'rgba(255,255,255,0.5)\'">';
-      html += '      <span style="display:flex; align-items:center; gap:8px">';
-      html += '        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s" class="group-open:rotate-90"><polyline points="9 18 15 12 9 6"/></svg>';
-      html += '        <span>VIEW COMPILED SQL QUERY</span>';
-      html += '      </span>';
-      html += '      <span style="font-size:10px; font-family:monospace; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:4px; padding:2px 6px">SQLITE</span>';
-      html += '    </summary>';
-      html += '    <div style="padding:0 20px 20px 20px; cursor:default">';
-      html += '      <div style="position:relative">';
-      html += '        <pre style="background:rgba(20,20,20,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:16px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; color:#e0c395; line-height:1.5; overflow-x:auto; margin:0">' + esc(csvReport.sql) + '</pre>';
-      html += '        <button type="button" onclick="rptCopySQL(this)" style="position:absolute; right:10px; top:10px; padding:6px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:11px; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">Copy SQL</button>';
-      html += '      </div>';
-      html += '    </div>';
-      html += '  </details>';
-      html += '</div>';
-    }
 
     area.innerHTML = html;
     renderCSVTablePage();
@@ -824,22 +1067,6 @@
     window.rptCSVState.pageSize = size;
     window.rptCSVState.currentPage = 1;
     renderCSVTablePage();
-  };
-
-  window.rptCopySQL = function (btn) {
-    if (!window.rptCurrentCSVData || !window.rptCurrentCSVData.sql) return;
-    navigator.clipboard.writeText(window.rptCurrentCSVData.sql)
-      .then(function () {
-        var originalText = btn.textContent;
-        btn.textContent = "Copied!";
-        btn.style.background = "rgba(46, 213, 115, 0.2)";
-        btn.style.borderColor = "rgba(46, 213, 115, 0.4)";
-        setTimeout(function () {
-          btn.textContent = originalText;
-          btn.style.background = "rgba(255,255,255,0.05)";
-          btn.style.borderColor = "rgba(255,255,255,0.1)";
-        }, 2000);
-      });
   };
 
   window.rptDownloadCurrentCSV = function () {
@@ -1043,8 +1270,9 @@
         show("rpt-panel-detail");
         // Auto-generate on create
         var area = document.getElementById("rpt-content-area");
-        area.innerHTML = rptGetSkeletonHTML(saved.name);
-        return fetch("/api/reports/" + saved.id + "/generate", { method: "POST" });
+        area.innerHTML = rptSkeletonFor(saved);
+        var genUrl = "/api/reports/" + saved.id + (saved.type === "csv" ? "/refine" : "/generate");
+        return fetch(genUrl, { method: "POST" });
       })
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (content) {

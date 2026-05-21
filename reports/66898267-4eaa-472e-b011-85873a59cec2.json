@@ -1,0 +1,124 @@
+{
+  "generated_at": "May 20, 2026",
+  "csv_report": {
+    "title": "Top Memberships",
+    "sql": "SELECT\n  mp.plan_name,\n  COUNT(*)                                      AS total_sales,\n  ROUND(SUM(mp.plan_price_dollars), 2)          AS total_revenue_dollars,\n  ROUND(AVG(mp.plan_price_dollars), 2)          AS avg_price_dollars,\n  SUM(CASE WHEN mp.state = 'active'    THEN 1 ELSE 0 END) AS active_count,\n  SUM(CASE WHEN mp.state = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,\n  MAX(mp.plan_price_dollars)                    AS Price,\n  (\n    SELECT ca.class_name\n    FROM vw_memberships m2\n    JOIN vw_class_attendance ca\n      ON ca.customer_id = m2.customer_id\n     AND ca.status = 'confirmed'\n     AND ca.checked_in_at IS NOT NULL\n    WHERE m2.plan_name = mp.plan_name\n      AND strftime('%Y-%m-%d', m2.purchased_at) >= '2026-04-20'\n      AND strftime('%Y-%m-%d', m2.purchased_at) <= '2026-05-20'\n    GROUP BY ca.class_name\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n  ) AS top_class,\n  (\n    SELECT ca.customer_name\n    FROM vw_memberships m3\n    JOIN vw_class_attendance ca\n      ON ca.customer_id = m3.customer_id\n     AND ca.status = 'confirmed'\n     AND ca.checked_in_at IS NOT NULL\n    WHERE m3.plan_name = mp.plan_name\n      AND strftime('%Y-%m-%d', m3.purchased_at) >= '2026-04-20'\n      AND strftime('%Y-%m-%d', m3.purchased_at) <= '2026-05-20'\n    GROUP BY ca.customer_id, ca.customer_name\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n  ) AS top_visiting_customer\nFROM vw_memberships mp\nWHERE strftime('%Y-%m-%d', mp.purchased_at) >= '2026-04-20'\n  AND strftime('%Y-%m-%d', mp.purchased_at) <= '2026-05-20'\nGROUP BY mp.plan_name\nORDER BY total_revenue_dollars DESC",
+    "columns": [
+      "Plan Name",
+      "Total Sales",
+      "Total Revenue ($)",
+      "Avg Price ($)",
+      "Active Count",
+      "Cancelled Count",
+      "Price ($)",
+      "Top Class",
+      "Top Visiting Customer"
+    ],
+    "rows": [
+      [
+        "Intro Offer",
+        60,
+        4500.0,
+        75.0,
+        60,
+        0,
+        75.0,
+        "Panther Power Sculpt",
+        "JJ Hammond"
+      ],
+      [
+        "10 Class Pack",
+        6,
+        1740.0,
+        290.0,
+        6,
+        0,
+        290.0,
+        "Panther Power Sculpt",
+        "Sara Sullivan"
+      ],
+      [
+        "Unlimited / Month",
+        7,
+        1680.0,
+        240.0,
+        6,
+        1,
+        240.0,
+        "Panther Power Sculpt",
+        "Lilia Bush"
+      ],
+      [
+        "4 Classes / Month",
+        10,
+        1100.0,
+        110.0,
+        9,
+        1,
+        110.0,
+        "Panther Power Sculpt",
+        "Raniza Valiullina"
+      ]
+    ],
+    "error": null,
+    "history": [
+      {
+        "title": "Top memberships",
+        "sql": "SELECT\n  mp.plan_name,\n  COUNT(*)                                      AS total_sales,\n  ROUND(SUM(mp.plan_price_dollars), 2)          AS total_revenue_dollars,\n  ROUND(AVG(mp.plan_price_dollars), 2)          AS avg_price_dollars,\n  SUM(CASE WHEN mp.state = 'active'    THEN 1 ELSE 0 END) AS active_count,\n  SUM(CASE WHEN mp.state = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,\n  MAX(mp.plan_price_dollars)                    AS Price,\n  (\n    SELECT ca.class_name\n    FROM vw_memberships m2\n    JOIN vw_class_attendance ca\n      ON ca.customer_id = m2.customer_id\n     AND ca.status = 'confirmed'\n     AND ca.checked_in_at IS NOT NULL\n    WHERE m2.plan_name = mp.plan_name\n      AND strftime('%Y-%m-%d', m2.purchased_at) >= '2026-04-20'\n      AND strftime('%Y-%m-%d', m2.purchased_at) <= '2026-05-20'\n    GROUP BY ca.class_name\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n  ) AS top_class\nFROM vw_memberships mp\nWHERE strftime('%Y-%m-%d', mp.purchased_at) >= '2026-04-20'\n  AND strftime('%Y-%m-%d', mp.purchased_at) <= '2026-05-20'\nGROUP BY mp.plan_name\nORDER BY total_revenue_dollars DESC",
+        "columns": [
+          "Plan Name",
+          "Total Sales",
+          "Total Revenue ($)",
+          "Avg Price ($)",
+          "Active Count",
+          "Cancelled Count",
+          "Price",
+          "Top Class"
+        ],
+        "rows": [
+          [
+            "Intro Offer",
+            60,
+            4500.0,
+            75.0,
+            60,
+            0,
+            75.0,
+            "Panther Power Sculpt"
+          ],
+          [
+            "10 Class Pack",
+            6,
+            1740.0,
+            290.0,
+            6,
+            0,
+            290.0,
+            "Panther Power Sculpt"
+          ],
+          [
+            "Unlimited / Month",
+            7,
+            1680.0,
+            240.0,
+            6,
+            1,
+            240.0,
+            "Panther Power Sculpt"
+          ],
+          [
+            "4 Classes / Month",
+            10,
+            1100.0,
+            110.0,
+            9,
+            1,
+            110.0,
+            "Panther Power Sculpt"
+          ]
+        ],
+        "error": null
+      }
+    ]
+  }
+}

@@ -1367,6 +1367,272 @@ def generate_report(report_id):
         return jsonify({"error": str(e)}), 500
 
 
+def _today_str():
+    return (
+        date.today().strftime('%b ')
+        + str(date.today().day)
+        + ', '
+        + date.today().strftime('%Y')
+    )
+
+
+def _run_sql_block(sql, display_columns=None):
+    """Execute `sql` and return a {columns, rows, error} block. If
+    `display_columns` is supplied and matches the result column count, those
+    pretty headers are kept instead of the raw SQL keys."""
+    columns = []
+    rows = []
+    err = None
+    if not sql:
+        err = "No SQL query stored for this report."
+    else:
+        try:
+            query_rows = warehouse.run_query(sql, limit=50000)
+            if not query_rows:
+                err = "Query returned no rows."
+            else:
+                column_keys = list(query_rows[0].keys())
+                if display_columns and len(display_columns) == len(column_keys):
+                    columns = list(display_columns)
+                else:
+                    columns = [k.replace("_", " ").title() for k in column_keys]
+                rows = [[r.get(k) for k in column_keys] for r in query_rows]
+        except Exception as e:
+            err = f"Query execution failed: {e}"
+    return {"columns": columns, "rows": rows, "error": err}
+
+
+@app.route('/api/reports/<report_id>/run', methods=['POST'])
+def run_report_query(report_id):
+    """Re-execute the active SQL for a CSV report. No AI call. If an unsaved
+    draft exists, runs the draft SQL (and refreshes the draft's rows);
+    otherwise runs the committed SQL."""
+    reports = _read_reports()
+    report = next((r for r in reports if r["id"] == report_id), None)
+    if report is None:
+        return jsonify({"error": "not found"}), 404
+    if report.get("type") != "csv":
+        return jsonify({"error": "/run is only supported for CSV reports"}), 400
+
+    stored = _read_report_content(report_id) or {}
+    csv_block = stored.get("csv_report") or {}
+    draft = csv_block.get("draft") or None
+    draft_sql = (draft.get("sql") if draft else "") or ""
+
+    if draft_sql.strip():
+        result = _run_sql_block(draft_sql, display_columns=draft.get("columns"))
+        draft["columns"] = result["columns"]
+        draft["rows"] = result["rows"]
+        draft["error"] = result["error"]
+        csv_block["draft"] = draft
+    else:
+        sql = (csv_block.get("sql") or "").strip()
+        if not sql:
+            return jsonify({"error": "No query yet — refine with AI first."}), 400
+        result = _run_sql_block(sql, display_columns=csv_block.get("columns"))
+        csv_block["columns"] = result["columns"]
+        csv_block["rows"] = result["rows"]
+        csv_block["error"] = result["error"]
+
+    content = {"generated_at": _today_str(), "csv_report": csv_block}
+    _write_report_content(report_id, content)
+
+    for r in reports:
+        if r["id"] == report_id:
+            r["last_run"] = content["generated_at"]
+    _write_reports(reports)
+
+    return jsonify(content)
+
+
+@app.route('/api/reports/<report_id>/refine', methods=['POST'])
+def refine_report_query(report_id):
+    """For CSV reports: ask Claude to generate (if no SQL yet) or refine the
+    stored SQL based on the saved prompt, then execute and persist."""
+    reports = _read_reports()
+    report = next((r for r in reports if r["id"] == report_id), None)
+    if report is None:
+        return jsonify({"error": "not found"}), 404
+    if report.get("type") != "csv":
+        return jsonify({"error": "/refine is only supported for CSV reports"}), 400
+
+    date_range = ""
+    if report.get("start") and report.get("end"):
+        date_range = f" for the period {report['start']} to {report['end']}"
+    elif report.get("start"):
+        date_range = f" starting {report['start']}"
+
+    custom_prompt = (report.get("prompt") or "").strip()
+
+    stored = _read_report_content(report_id) or {}
+    csv_block = stored.get("csv_report") or {}
+    saved_sql = (csv_block.get("sql") or "").strip()
+    existing_draft = csv_block.get("draft") or None
+    # Refine on top of the draft if one exists, else on the saved SQL.
+    base_sql = ((existing_draft.get("sql") if existing_draft else "") or saved_sql).strip()
+
+    if not custom_prompt and not base_sql:
+        return jsonify({"error": "Add a prompt describing what you want."}), 400
+
+    if base_sql and custom_prompt:
+        prompt = (
+            f"Refine the SQL query for a CSV/Table report titled '{report['name']}'{date_range}.\n\n"
+            f"Current SQL:\n```sql\n{base_sql}\n```\n\n"
+            f"User's refinement instruction:\n'{custom_prompt}'\n\n"
+            f"Return updated SQL that satisfies the instruction. Keep the query a clean "
+            f"SQLite SELECT against Vygor's vw_* views. Only change what the instruction "
+            f"asks for; preserve all other columns, filters, and grouping."
+        )
+    elif custom_prompt:
+        prompt = (
+            f"Build a structured CSV/Table report as a single data table based on these instructions:\n"
+            f"'{custom_prompt}'\n\n"
+            f"Report Title: '{report['name']}'{date_range}.\n"
+            f"Focus on yielding detailed, comprehensive row-level information with clean SQLite queries against Vygor's vw_* views."
+        )
+    else:
+        prompt = (
+            f"Generate a structured CSV/Table report as a single data table titled '{report['name']}'{date_range} "
+            f"for Vygor Test yoga studio.\n"
+            f"Focus on yielding detailed, comprehensive row-level columns suitable for tabular analysis."
+        )
+
+    try:
+        msg = anthropic_client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=8192,
+            system=[{"type": "text", "text": REPORT_SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
+            tools=[CSV_REPORT_TOOL],
+            tool_choice={"type": "tool", "name": "build_csv_report"},
+            messages=[{"role": "user", "content": prompt}],
+        )
+
+        if msg.stop_reason == "max_tokens":
+            print(f"[refine_report_query] hit max_tokens — tool_use input may be truncated")
+
+        tool_block = next((b for b in msg.content if b.type == "tool_use"), None)
+        if not tool_block:
+            return jsonify({"error": "No SQL generated"}), 500
+
+        title = tool_block.input.get("title") or report["name"]
+        new_sql = (tool_block.input.get("sql") or "").strip()
+        if not new_sql:
+            return jsonify({"error": "No SQL formulated by Vygor Intelligence."}), 500
+
+        ai_columns = tool_block.input.get("columns") or None
+        result = _run_sql_block(new_sql, display_columns=ai_columns)
+
+        if saved_sql:
+            # Saved version exists — stash refinement in draft so the stored
+            # SQL is preserved until the user clicks Save Changes.
+            csv_block["draft"] = {
+                "title": title,
+                "sql": new_sql,
+                "columns": result["columns"],
+                "rows": result["rows"],
+                "error": result["error"],
+            }
+        else:
+            # First-time generation — commit straight to saved fields.
+            csv_block["title"] = title
+            csv_block["sql"] = new_sql
+            csv_block["columns"] = result["columns"]
+            csv_block["rows"] = result["rows"]
+            csv_block["error"] = result["error"]
+            csv_block.pop("draft", None)
+
+        content = {"generated_at": _today_str(), "csv_report": csv_block}
+        _write_report_content(report_id, content)
+
+        for r in reports:
+            if r["id"] == report_id:
+                r["last_run"] = content["generated_at"]
+        _write_reports(reports)
+
+        return jsonify(content)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/reports/<report_id>/commit', methods=['POST'])
+def commit_report_draft(report_id):
+    """Promote csv_report.draft to the saved fields, then clear the draft.
+    No-op (200) if there's nothing to commit, so the frontend can call this
+    unconditionally as part of Save Changes."""
+    reports = _read_reports()
+    report = next((r for r in reports if r["id"] == report_id), None)
+    if report is None:
+        return jsonify({"error": "not found"}), 404
+    if report.get("type") != "csv":
+        return jsonify({"error": "/commit is only supported for CSV reports"}), 400
+
+    stored = _read_report_content(report_id) or {}
+    csv_block = stored.get("csv_report") or {}
+    draft = csv_block.get("draft")
+    has_draft = bool(draft and (draft.get("sql") or "").strip())
+    has_history = bool(csv_block.get("history"))
+    if not has_draft and not has_history:
+        # Nothing to commit and no history to clear. Return current content
+        # unchanged so the caller can update its UI off a single response shape.
+        return jsonify(stored), 200
+
+    if has_draft:
+        csv_block["title"] = draft.get("title") or csv_block.get("title") or report["name"]
+        csv_block["sql"] = draft["sql"]
+        csv_block["columns"] = draft.get("columns") or csv_block.get("columns") or []
+        csv_block["rows"] = draft.get("rows") if draft.get("rows") is not None else csv_block.get("rows", [])
+        csv_block["error"] = draft.get("error")
+        csv_block.pop("draft", None)
+
+    # Save Changes is the commitment point: clear the undo stack so Undo
+    # becomes unavailable after a save.
+    csv_block.pop("history", None)
+
+    content = stored
+    content["csv_report"] = csv_block
+    _write_report_content(report_id, content)
+    return jsonify(content)
+
+
+@app.route('/api/reports/<report_id>/undo', methods=['POST'])
+def undo_report_change(report_id):
+    """Undo the most recent change on a CSV report. If an unsaved draft exists,
+    discard it (revert to the saved version). Otherwise pop the last entry off
+    the history stack and restore it as the saved version."""
+    reports = _read_reports()
+    report = next((r for r in reports if r["id"] == report_id), None)
+    if report is None:
+        return jsonify({"error": "not found"}), 404
+    if report.get("type") != "csv":
+        return jsonify({"error": "/undo is only supported for CSV reports"}), 400
+
+    stored = _read_report_content(report_id) or {}
+    csv_block = stored.get("csv_report") or {}
+    draft = csv_block.get("draft")
+    has_draft = bool(draft and (draft.get("sql") or "").strip())
+    history = csv_block.get("history") or []
+
+    if has_draft:
+        csv_block.pop("draft", None)
+    elif history:
+        prev = history.pop()
+        csv_block["title"] = prev.get("title") or csv_block.get("title") or report["name"]
+        csv_block["sql"] = prev.get("sql") or ""
+        csv_block["columns"] = prev.get("columns") or []
+        csv_block["rows"] = prev.get("rows") or []
+        csv_block["error"] = prev.get("error")
+        csv_block["history"] = history
+    else:
+        return jsonify({"error": "Nothing to undo."}), 400
+
+    content = stored
+    content["csv_report"] = csv_block
+    _write_report_content(report_id, content)
+    return jsonify(content)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':

@@ -20,23 +20,13 @@
     "last_run": "May 20, 2026"
   },
   {
-    "id": "720579cb-cd9b-44f3-a6ef-79bf1993f711",
-    "name": "Membership rates",
+    "id": "66898267-4eaa-472e-b011-85873a59cec2",
+    "name": "Top memberships",
     "type": "csv",
     "date_range": "last_30_days",
     "start": "Apr 20, 2026",
     "end": "May 20, 2026",
-    "prompt": "Break down my membership booking rates",
-    "last_run": "May 20, 2026"
-  },
-  {
-    "id": "101fe5c4-c62f-4092-819b-82398dc10be1",
-    "name": "Membership vs Classes",
-    "type": "csv",
-    "date_range": "last_30_days",
-    "start": "Apr 20, 2026",
-    "end": "May 20, 2026",
-    "prompt": "compare the membership types to the classes they attend",
+    "prompt": "add the name of the customer who visits the most in each membership",
     "last_run": "May 20, 2026"
   }
 ]
