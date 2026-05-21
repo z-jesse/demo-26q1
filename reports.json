@@ -4,8 +4,8 @@
     "name": "Studio Performance Overview (All-in-One)",
     "type": "document",
     "date_range": "last_7_days",
-    "start": "May 13, 2026",
-    "end": "May 20, 2026",
+    "start": "May 14, 2026",
+    "end": "May 21, 2026",
     "prompt": "Give me a report on my revenue, my visit count, and my membership count. Include a narrative summary first, a line chart of daily revenue, a bar chart of daily class attendance visits, and a donut chart of membership plan distribution.",
     "last_run": "May 20, 2026"
   },
@@ -14,8 +14,8 @@
     "name": "Financial & Revenue Summary",
     "type": "document",
     "date_range": "last_30_days",
-    "start": "Apr 20, 2026",
-    "end": "May 20, 2026",
+    "start": "Apr 21, 2026",
+    "end": "May 21, 2026",
     "prompt": "Give me a detailed financial report showing total realized revenue, a breakdown of revenue by source (membership, product, booking), and daily revenue trends.",
     "last_run": "May 20, 2026"
   },
@@ -24,9 +24,19 @@
     "name": "Top memberships",
     "type": "csv",
     "date_range": "last_30_days",
-    "start": "Apr 20, 2026",
-    "end": "May 20, 2026",
+    "start": "Apr 21, 2026",
+    "end": "May 21, 2026",
     "prompt": "add the name of the customer who visits the most in each membership",
     "last_run": "May 20, 2026"
+  },
+  {
+    "id": "b0b6cf3a-111c-450b-b777-5beed6c1edef",
+    "name": "Membership activity",
+    "type": "csv",
+    "date_range": "all_time",
+    "start": "Jan 1, 2020",
+    "end": "May 21, 2026",
+    "prompt": "clear rows that do not have a plan name",
+    "last_run": "May 21, 2026"
   }
 ]
