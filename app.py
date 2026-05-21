@@ -1322,7 +1322,7 @@ def generate_report(report_id):
                 err = "No SQL query formulated by Vygor Intelligence."
             else:
                 try:
-                    query_rows = warehouse.run_query(sql)
+                    query_rows = warehouse.run_query(sql, limit=50000)
                     if not query_rows:
                         err = "Query returned no rows."
                     else:

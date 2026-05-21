@@ -487,6 +487,17 @@
       }
     }
 
+    var area = document.getElementById("rpt-content-area");
+    if (area) {
+      if (r.type === "csv") {
+        area.classList.remove("max-w-4xl");
+        area.classList.add("max-w-full");
+      } else {
+        area.classList.remove("max-w-full");
+        area.classList.add("max-w-4xl");
+      }
+    }
+
     document.getElementById("rpt-detail-title").innerHTML = esc(r.name) + typeBadgeHtml;
     document.getElementById("rpt-detail-lastrun").textContent = r.last_run || "—";
     
@@ -600,7 +611,7 @@
         area.innerHTML = rptGetSkeletonHTML(saved.name);
         return fetch("/api/reports/" + saved.id + "/generate", { method: "POST" });
       })
-      .then(function (r) { if (!r.ok) throw new Error("Server error"); return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (content) {
         if (content.generated_at) {
           document.getElementById("rpt-detail-lastrun").textContent = content.generated_at;
@@ -630,6 +641,10 @@
     }
 
     window.rptCurrentCSVData = csvReport;
+    window.rptCSVState = {
+      currentPage: 1,
+      pageSize: 50
+    };
 
     var columns = csvReport.columns || [];
     var rows = csvReport.rows || [];
@@ -652,45 +667,60 @@
     html += '  </button>';
     html += '</div>';
 
-    // 2. Preview Table Grid
-    html += '<div style="margin-bottom:32px">';
+    // 2. Dynamic Performance Warning Banner
+    html += '<div id="csv-perf-warning" style="display:none; align-items:center; gap:12px; background:rgba(230,126,34,0.08); border:1px solid rgba(230,126,34,0.3); border-radius:12px; padding:14px 18px; margin-bottom:20px; animation: fadeIn 0.3s ease-out">';
+    html += '  <span style="font-size:18px; line-height:1">⚠️</span>';
+    html += '  <span style="font-size:13px; color:#e67e22; font-family:Figtree"><strong>Performance Warning:</strong> Displaying a large dataset simultaneously in the browser can cause minor scrolling stutter. For extremely large sets, downloading the raw CSV is recommended.</span>';
+    html += '</div>';
+
+    // 3. Scrollable Table Container
+    html += '<div style="margin-bottom:20px">';
     html += '  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">';
-    html += '    <h4 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); margin:0">Data Preview <span style="text-transform:none; font-weight:normal; color:rgba(255,255,255,0.25)">(' + Math.min(rows.length, 50) + ' of ' + rows.length + ' rows shown)</span></h4>';
+    html += '    <h4 style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); margin:0">Compiled Data Grid</h4>';
     html += '  </div>';
     
-    html += '  <div style="width:100%; overflow-x:auto; border:1px solid rgba(255,255,255,0.06); border-radius:12px; background:rgba(0,0,0,0.15)">';
+    html += '  <div style="width:100%; max-height:550px; overflow:auto; border:1px solid rgba(255,255,255,0.06); border-radius:12px; background:rgba(0,0,0,0.15)">';
     html += '    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px">';
     
     if (columns.length) {
       html += '      <thead>';
-      html += '        <tr style="background:rgba(255,255,255,0.02)">';
+      html += '        <tr style="background:rgba(255,255,255,0.03); position:sticky; top:0; z-index:10; backdrop-filter:blur(8px); border-bottom:1px solid rgba(255,255,255,0.08)">';
       columns.forEach(function (col) {
-        html += '          <th style="padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); font-weight:600; border-bottom:1px solid rgba(255,255,255,0.08)">' + esc(col) + '</th>';
+        html += '          <th style="padding:14px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(255,255,255,0.4); font-weight:600; background:rgba(20,20,20,0.95); border-bottom:1px solid rgba(255,255,255,0.08)">' + esc(col) + '</th>';
       });
       html += '        </tr>';
       html += '      </thead>';
     }
     
-    html += '      <tbody>';
-    var previewRows = rows.slice(0, 50);
-    if (!previewRows.length) {
-      html += '        <tr><td colspan="' + (columns.length || 1) + '" style="padding:24px; text-align:center; color:rgba(255,255,255,0.3)">No data available in table.</td></tr>';
-    } else {
-      previewRows.forEach(function (row, rIdx) {
-        html += '        <tr style="border-bottom:1px solid rgba(255,255,255,0.04); background:' + (rIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)') + '" class="data-table__row">';
-        row.forEach(function (cell) {
-          var val = cell == null ? "" : cell;
-          html += '          <td style="padding:12px 16px; color:#fff; font-family:Figtree; white-space:nowrap">' + esc(String(val)) + '</td>';
-        });
-        html += '        </tr>';
-      });
-    }
-    html += '      </tbody>';
+    html += '      <tbody id="csv-tbody"></tbody>';
     html += '    </table>';
     html += '  </div>';
     html += '</div>';
 
-    // 3. Collapsible Compiled SQL Viewer
+    // 4. Pagination Toolbar
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:12px 20px; margin-bottom:24px">';
+    html += '  <div id="csv-pagination-info" style="font-size:13px; color:rgba(255,255,255,0.5); font-family:Figtree">Showing 0 - 0 of 0 rows</div>';
+    
+    html += '  <div style="display:flex; align-items:center; gap:6px">';
+    html += '    <button type="button" onclick="rptChangeCSVPage(\'first\')" style="padding:6px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#fff; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.12)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\'">&lt;&lt;</button>';
+    html += '    <button type="button" onclick="rptChangeCSVPage(\'prev\')" style="padding:6px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#fff; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.12)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\'">&lt;</button>';
+    html += '    <span id="csv-page-indicator" style="font-size:13px; color:#fff; font-family:Figtree; min-width:90px; text-align:center; font-weight:600">Page 1 of 1</span>';
+    html += '    <button type="button" onclick="rptChangeCSVPage(\'next\')" style="padding:6px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#fff; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.12)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\'">&gt;</button>';
+    html += '    <button type="button" onclick="rptChangeCSVPage(\'last\')" style="padding:6px 12px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#fff; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.12)\';this.style.borderColor=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\';this.style.borderColor=\'rgba(255,255,255,0.08)\'">&gt;&gt;</button>';
+    html += '  </div>';
+    
+    html += '  <div style="display:flex; align-items:center; gap:8px">';
+    html += '    <span style="font-size:13px; color:rgba(255,255,255,0.5); font-family:Figtree">Rows per page:</span>';
+    html += '    <select onchange="rptChangeCSVPageSize(this.value)" style="background:rgba(20,20,20,0.9); border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:#fff; font-family:Figtree; font-size:13px; font-weight:600; padding:4px 10px; cursor:pointer; outline:none">';
+    html += '      <option value="50">50</option>';
+    html += '      <option value="100">100</option>';
+    html += '      <option value="250">250</option>';
+    html += '      <option value="all">Show All</option>';
+    html += '    </select>';
+    html += '  </div>';
+    html += '</div>';
+
+    // 5. Collapsible Compiled SQL Viewer
     if (csvReport.sql) {
       html += '<div style="margin-top:24px; border:1px solid rgba(255,255,255,0.05); border-radius:12px; overflow:hidden; background:rgba(0,0,0,0.1)">';
       html += '  <details style="cursor:pointer" class="group">';
@@ -712,7 +742,89 @@
     }
 
     area.innerHTML = html;
+    renderCSVTablePage();
   }
+
+  window.renderCSVTablePage = function () {
+    var csvReport = window.rptCurrentCSVData;
+    if (!csvReport) return;
+
+    var rows = csvReport.rows || [];
+    var columns = csvReport.columns || [];
+    var state = window.rptCSVState;
+
+    var totalRows = rows.length;
+    var pageSize = state.pageSize === "all" ? totalRows : Number(state.pageSize);
+    var totalPages = pageSize === 0 ? 1 : Math.ceil(totalRows / pageSize);
+
+    if (state.currentPage > totalPages) state.currentPage = totalPages;
+    if (state.currentPage < 1) state.currentPage = 1;
+
+    var startIndex = state.pageSize === "all" ? 0 : (state.currentPage - 1) * pageSize;
+    var endIndex = state.pageSize === "all" ? totalRows : Math.min(startIndex + pageSize, totalRows);
+
+    var tbody = document.getElementById("csv-tbody");
+    if (!tbody) return;
+
+    var slicedRows = rows.slice(startIndex, endIndex);
+    var html = "";
+
+    if (!slicedRows.length) {
+      html += '<tr><td colspan="' + (columns.length || 1) + '" style="padding:24px; text-align:center; color:rgba(255,255,255,0.3)">No data available in table.</td></tr>';
+    } else {
+      slicedRows.forEach(function (row, index) {
+        var actualIndex = startIndex + index;
+        html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.04); background:' + (actualIndex % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)') + '" class="data-table__row">';
+        row.forEach(function (cell) {
+          var val = cell == null ? "" : cell;
+          html += '<td style="padding:12px 16px; color:#fff; font-family:Figtree; white-space:nowrap">' + esc(String(val)) + '</td>';
+        });
+        html += '</tr>';
+      });
+    }
+
+    tbody.innerHTML = html;
+
+    // Update Pagination Label
+    var startDisp = totalRows ? startIndex + 1 : 0;
+    var pageInfoText = "Showing " + startDisp + " - " + endIndex + " of " + totalRows + " rows";
+    document.getElementById("csv-pagination-info").textContent = pageInfoText;
+    document.getElementById("csv-page-indicator").textContent = "Page " + state.currentPage + " of " + totalPages;
+
+    // Toggle performance warning
+    var warningEl = document.getElementById("csv-perf-warning");
+    if (warningEl) {
+      if (state.pageSize === "all" && totalRows > 500) {
+        warningEl.style.display = "flex";
+      } else {
+        warningEl.style.display = "none";
+      }
+    }
+  };
+
+  window.rptChangeCSVPage = function (direction) {
+    var state = window.rptCSVState;
+    var csvReport = window.rptCurrentCSVData;
+    if (!csvReport) return;
+
+    var rows = csvReport.rows || [];
+    var totalRows = rows.length;
+    var pageSize = state.pageSize === "all" ? totalRows : Number(state.pageSize);
+    var totalPages = pageSize === 0 ? 1 : Math.ceil(totalRows / pageSize);
+
+    if (direction === "first") state.currentPage = 1;
+    else if (direction === "prev") state.currentPage = Math.max(1, state.currentPage - 1);
+    else if (direction === "next") state.currentPage = Math.min(totalPages, state.currentPage + 1);
+    else if (direction === "last") state.currentPage = totalPages;
+
+    renderCSVTablePage();
+  };
+
+  window.rptChangeCSVPageSize = function (size) {
+    window.rptCSVState.pageSize = size;
+    window.rptCSVState.currentPage = 1;
+    renderCSVTablePage();
+  };
 
   window.rptCopySQL = function (btn) {
     if (!window.rptCurrentCSVData || !window.rptCurrentCSVData.sql) return;

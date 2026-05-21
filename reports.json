@@ -28,5 +28,15 @@
     "end": "May 20, 2026",
     "prompt": "Break down my membership booking rates",
     "last_run": "May 20, 2026"
+  },
+  {
+    "id": "101fe5c4-c62f-4092-819b-82398dc10be1",
+    "name": "Membership vs Classes",
+    "type": "csv",
+    "date_range": "last_30_days",
+    "start": "Apr 20, 2026",
+    "end": "May 20, 2026",
+    "prompt": "compare the membership types to the classes they attend",
+    "last_run": "May 20, 2026"
   }
 ]
